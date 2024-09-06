@@ -83,7 +83,7 @@ namespace Saturn {
 			m_RigidBody->SetOnCollisionExit( SAT_BIND_EVENT_FN( OnMeshExit ) );
 		}
 
-		Input::Get().SetCursorMode( RubyCursorMode::Locked, true );
+		Input::Get().SetCursorMode( RubyCursorMode::Locked );
 	}
 
 	void Character::OnUpdate( Timestep ts )
@@ -221,17 +221,4 @@ namespace Saturn {
 		m_MovementDirection.x = 1.0f;
 	}
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Build Tool
-//////////////////////////////////////////////////////////////////////////
-
-Saturn::Entity* _Z_Create_Character()
-{
-	using namespace Saturn;
-
-	Saturn::Ref<Character> Target = Saturn::Ref<Character>::Create();
-	Saturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();
-	return TargetReturn.Get();
 }

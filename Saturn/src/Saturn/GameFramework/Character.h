@@ -107,7 +107,3 @@ namespace Saturn {
 		Ref<Entity> m_CameraEntity = nullptr;
 	};
 }
-
-// Temp
-// DO NOT USE! This is only here because we are not using the Build Tool for the engine however any game classes will need this function to constructed properly
-Saturn::Entity* _Z_Create_Character();
