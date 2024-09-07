@@ -302,8 +302,10 @@ namespace Saturn {
 					{
 						if( ImGui::Button( "Create" ) )
 						{
+							// Path: C:\{dirs}\{name}\{name}.sproject
 							std::filesystem::path fullPath = std::string( m_ProjectFilePathBuffer );
-							fullPath /= m_ProjectFilePathBuffer;
+							fullPath /= std::string( m_ProjectNameBuffer );
+							fullPath /= std::string( m_ProjectNameBuffer );
 							fullPath.replace_extension( ".sproject" );
 
 							CreateProject( fullPath );
@@ -403,11 +405,14 @@ namespace Saturn {
 
 	void ProjectBrowserLayer::CreateProject( const std::filesystem::path& rPath )
 	{
-		std::filesystem::path ProjectPath = rPath.parent_path();
 		std::string ProjectName = rPath.filename().string();
+		std::string ProjectNameNoExt = rPath.stem().string();
 
-		if( !std::filesystem::exists( ProjectPath ) )
-			std::filesystem::create_directories( ProjectPath );
+		// parent_path to get rid of the file
+		std::filesystem::path ProjectFolderPath = rPath.parent_path();
+
+		if( !std::filesystem::exists( ProjectFolderPath ) )
+			std::filesystem::create_directories( ProjectFolderPath );
 
 		// Copy files.
 		std::filesystem::path targetPath = m_SaturnDir;
@@ -416,46 +421,46 @@ namespace Saturn {
 		targetPath /= "Templates";
 		targetPath /= "Base";
 
-		std::filesystem::copy( targetPath, ProjectPath, std::filesystem::copy_options::recursive );
+		std::filesystem::copy( targetPath, ProjectFolderPath, std::filesystem::copy_options::recursive );
 
 		// New Project ref
 		Ref<Project> newProject = Ref<Project>::Create();
 
 		// Project file
 		{
-			std::ifstream stream( ProjectPath / "Project.sproject" );
+			std::ifstream stream( ProjectFolderPath / "Project.sproject" );
 			std::stringstream ss;
 			ss << stream.rdbuf();
 			stream.close();
 
 			std::string str = ss.str();
-			ReplaceToken( str, "/REPLACE_WITH_PROJECT_NAME/", ProjectName );
+			ReplaceToken( str, "%PROJECT_NAME%", ProjectNameNoExt );
 
-			std::ofstream out( ProjectPath / "Project.sproject" );
+			std::ofstream out( ProjectFolderPath / "Project.sproject" );
 			out << str;
 			out.close();
 
-			newProject->GetConfig().Name = ProjectName;
-			newProject->GetConfig().Path = ProjectPath.string();
+			newProject->GetConfig().Name = ProjectNameNoExt;
+			newProject->GetConfig().Path = ProjectFolderPath.string();
 
-			std::filesystem::rename( ProjectPath / "Project.sproject", ProjectPath / ProjectName );
+			std::filesystem::rename( ProjectFolderPath / "Project.sproject", ProjectFolderPath / ProjectName );
 		}
 
-		std::filesystem::create_directory( ProjectPath / "Assets" );
+		std::filesystem::create_directory( ProjectFolderPath / "Assets" );
 
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Shaders" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Textures" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Meshes" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Materials" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Scenes" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" );
-		std::filesystem::create_directories( ProjectPath / "Assets" / "Sound" / "Source" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Shaders" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Textures" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Meshes" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Materials" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Scenes" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Sound" );
+		std::filesystem::create_directories( ProjectFolderPath / "Assets" / "Sound" / "Source" );
 		
-		std::filesystem::create_directory( ProjectPath / "Source" );
-		std::filesystem::create_directory( ProjectPath / "Build" );
-		std::filesystem::create_directory( ProjectPath / "Cache" );
+		std::filesystem::create_directory( ProjectFolderPath / "Source" );
+		std::filesystem::create_directory( ProjectFolderPath / "Build" );
+		std::filesystem::create_directory( ProjectFolderPath / "Cache" );
 
-		std::filesystem::create_directories( ProjectPath / "Source" / newProject->GetConfig().Name );
+		std::filesystem::create_directories( ProjectFolderPath / "Source" / newProject->GetConfig().Name );
 
 		{
 			std::filesystem::path targetFilePath = m_SaturnDir;
@@ -464,12 +469,12 @@ namespace Saturn {
 			targetFilePath /= "Templates";
 			targetFilePath /= "%PROJECT_NAME%.Load.cpp";
 
-			std::filesystem::copy( targetFilePath, ProjectPath / "Build" );
+			std::filesystem::copy( targetFilePath, ProjectFolderPath / "Build" );
 			
 			std::string filename = "%PROJECT_NAME%.Load.cpp";
 			std::string newName = std::format( "{0}.Load.cpp", newProject->GetConfig().Name );
 
-			std::filesystem::rename( ProjectPath / "Build" / filename, ProjectPath / "Build" / newName );
+			std::filesystem::rename( ProjectFolderPath / "Build" / filename, ProjectFolderPath / "Build" / newName );
 		}
 
 		Project::SetActiveProject( newProject );

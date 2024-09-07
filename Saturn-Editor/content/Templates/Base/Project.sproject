@@ -1,1 +1,8 @@
-Project: /REPLACE_WITH_PROJECT_NAME/
+Project:
+  Name: %PROJECT_NAME%
+  AssetPath: Assets
+  StartupScene: 0
+  ActionBindings:
+    []
+  SoundGroups:
+    []

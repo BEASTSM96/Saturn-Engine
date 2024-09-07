@@ -75,18 +75,19 @@ namespace Saturn {
 
 	Ref<Asset> AssetRegistry::FindAsset( AssetID id )
 	{
-		return m_Assets.at( id );
+		const auto Itr = m_Assets.find( id );
+		return Itr == m_Assets.end() ? nullptr : Itr->second;
 	}
 
 	Ref<Asset> AssetRegistry::FindAsset( const std::filesystem::path& rPath )
 	{
-		for( const auto& [id, asset] : m_Assets )
-		{
-			if( asset->GetPath() == rPath )
-				return asset;
-		}
+		const auto Itr = std::find_if( m_Assets.begin(), m_Assets.end(), 
+			[rPath](const auto& kv)
+			{
+				return kv.second->Path == rPath;
+			} );
 
-		return nullptr;
+		return Itr == m_Assets.end() ? nullptr : Itr->second;
 	}
 
 	Ref<Asset> AssetRegistry::FindAsset( const std::string& rName, AssetType type )
