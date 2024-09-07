@@ -46,9 +46,6 @@ namespace Saturn {
 		virtual void OnUpdate( Timestep time ) {}
 		virtual void OnImGuiRender() {}
 		virtual void OnEvent( RubyEvent& rEvent ) {}
-
-	private:
-
 	};
 
 	class ImGuiLayer : public Layer

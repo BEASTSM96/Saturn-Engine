@@ -72,7 +72,9 @@ namespace Saturn {
 
 	void Input::SetCursorMode( RubyCursorMode mode, bool bypassGuard /*= false*/ )
 	{
+#if !defined(SAT_DIST)
 		if( m_CanSetCursorMode || bypassGuard )
+#endif
 			Application::Get().GetWindow()->SetMouseCursorMode( mode );
 	}
 

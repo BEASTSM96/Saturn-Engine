@@ -43,20 +43,20 @@
 
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
 
-constexpr const wchar_t* DefaultClassName = L"RUBY_WINDOW";
+constexpr const wchar_t* DEFAULT_WINDOW_CLASS_NAME = L"RUBY_WINDOW";
 
 struct RubyWindowRegister
 {
 	RubyWindowRegister() 
 	{
-		WNDCLASS wc = { .style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC, .lpfnWndProc = RubyWindowProc, .hInstance = GetModuleHandle( nullptr ), .hCursor = LoadCursor( nullptr, IDC_ARROW ), .lpszClassName = DefaultClassName };
+		WNDCLASS wc = { .style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC, .lpfnWndProc = RubyWindowProc, .hInstance = GetModuleHandle( nullptr ), .hCursor = LoadCursor( nullptr, IDC_ARROW ), .lpszClassName = DEFAULT_WINDOW_CLASS_NAME };
 
 		::RegisterClass( &wc );
 	}
 
 	~RubyWindowRegister()
 	{
-		::UnregisterClass( DefaultClassName, GetModuleHandle( nullptr ) );
+		::UnregisterClass( DEFAULT_WINDOW_CLASS_NAME, GetModuleHandle( nullptr ) );
 	}
 } static s_RubyWindowRegister;
 
@@ -419,7 +419,7 @@ namespace Saturn {
 		// "codecvt_utf8" and "wstring_convert" are going to be removed in C++26
 		std::wstring name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes( m_pWindow->m_WindowTitle.data() );
 
-		m_Handle = ::CreateWindowEx( 0, DefaultClassName, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
+		m_Handle = ::CreateWindowEx( 0, DEFAULT_WINDOW_CLASS_NAME, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
 
 		::SetPropW( m_Handle, L"RubyData", this );
 
@@ -585,7 +585,7 @@ namespace Saturn {
 		return vkCreateWin32SurfaceKHR( Instance, &CreateInfo, nullptr, pOutSurface );
 	}
 
-	void RubyWindowsBackend::SetMouseCursor( RubyCursorType Cursor )
+	void RubyWindowsBackend::SetMouseCursor( RubyCursorType Cursor, RubyMouseCursorSetReason Reason )
 	{
 		if( m_BlockMouseCursor || m_CurrentCursorType == Cursor )
 			return;
@@ -593,7 +593,6 @@ namespace Saturn {
 		m_CurrentCursorType = Cursor;
 
 		LPTSTR NativeCursorRes = ChooseCursor( Cursor );
-
 		m_CurrentMouseCursorIcon = ::LoadCursor( nullptr, NativeCursorRes );
 
 		UpdateCursorIcon();

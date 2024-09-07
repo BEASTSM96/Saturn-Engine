@@ -42,6 +42,13 @@ namespace Saturn {
 	struct RubyWindowSpecification;
 	class RubyWindow;
 
+	enum class RubyMouseCursorSetReason
+	{
+		User,
+		Resize,
+		Backend
+	};
+
 	class RubyBackendBase
 	{
 	public:
@@ -81,7 +88,7 @@ namespace Saturn {
 		virtual bool Maximized() = 0;
 		virtual bool Focused() = 0;
 
-		virtual void SetMouseCursor( RubyCursorType Cursor ) = 0;
+		virtual void SetMouseCursor( RubyCursorType Cursor, RubyMouseCursorSetReason Reason = RubyMouseCursorSetReason::User ) = 0;
 		virtual void SetMouseCursorMode( RubyCursorMode mode ) = 0;
 		virtual void Focus() = 0;
 

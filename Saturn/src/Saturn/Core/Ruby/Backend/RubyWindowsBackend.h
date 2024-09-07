@@ -69,7 +69,7 @@ namespace Saturn {
 
 		VkResult CreateVulkanWindowSurface( VkInstance Instance, VkSurfaceKHR* pOutSurface ) override;
 
-		void SetMouseCursor( RubyCursorType Cursor ) override;
+		void SetMouseCursor( RubyCursorType Cursor, RubyMouseCursorSetReason Reason = RubyMouseCursorSetReason::User ) override;
 		void SetMouseCursorMode( RubyCursorMode mode ) override;
 
 		void SetClipboardText( const std::string& rTextData ) override;
