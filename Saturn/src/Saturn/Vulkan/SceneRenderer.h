@@ -35,6 +35,7 @@
 #include "Mesh.h"
 #include "Saturn/Core/UUID.h"
 #include "Saturn/Asset/MaterialAsset.h"
+#include "Saturn/Serialisation/ImageFileAux.h"
 
 #include "Renderer.h"
 #include "EnvironmentMap.h"

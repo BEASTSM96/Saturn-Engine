@@ -31,8 +31,6 @@
 
 #include "Saturn/Project/Project.h"
 
-#include "Saturn/Asset/AssetManager.h"
-
 namespace Saturn {
 
 	void SourceFileTemplateHelper::CreateEntitySourceFiles( const std::filesystem::path& rPath, const char* pName )
@@ -53,16 +51,6 @@ namespace Saturn {
 
 		std::filesystem::rename( rPath / "EntityCode.cpp", src );
 		std::filesystem::rename( rPath / "EntityCode.h", header );
-
-		auto id = AssetManager::Get().CreateAsset( AssetType::Script );
-		Ref<Asset> asset = AssetManager::Get().FindAsset( id );
-
-		asset->SetAbsolutePath( src );
-
-		id = AssetManager::Get().CreateAsset( AssetType::Script );
-		asset = AssetManager::Get().FindAsset( id );
-
-		asset->SetAbsolutePath( header );
 
 		// Wait for rename.
 		std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );

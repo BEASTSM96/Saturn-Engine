@@ -444,12 +444,16 @@ namespace SaturnBuildTool.Tools
                 {
                     if ((cmd.CurrentFile.SClassInfo & SC.NoMetadata) != SC.NoMetadata)
                     {
-                        string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void _ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                         metadata += "{\r\n";
                         metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
-                        metadata += string.Format("\t__Metadata_{0}.Path = __FILE__;\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.GeneratedSourcePath = __FILE__;\r\n", cmd.CurrentFile.ClassName);
+                        //metadata += string.Format("\t__Metadata_{0}.SourcePath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, Path.ChangeExtension(HeaderPath, ".cpp"));
+                        //metadata += string.Format("\t__Metadata_{0}.SourcePath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, Path.ChangeExtension(HeaderPath, ".cpp"));
+                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"\";\r\n", cmd.CurrentFile.ClassName, HeaderPath);
+                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"\";\r\n", cmd.CurrentFile.ClassName, HeaderPath);
                         metadata += string.Format("\t__Metadata_{0}.Date = __DATE__;\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
                         metadata += "}\r\n";
@@ -458,7 +462,7 @@ namespace SaturnBuildTool.Tools
                     }
                     else 
                     {
-                        string metadata = string.Format("static void _RT_Z_CreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void _ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                         metadata += "{\r\n";
                         metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
@@ -468,30 +472,6 @@ namespace SaturnBuildTool.Tools
                         cmd.GeneratedSource.AppendLine(metadata);
                     }
                 }
-
-                /*
-                // Properties
-                string propfunc = string.Format("static void _Zp_{0}_Reg_Props()\r\n", cmd.CurrentFile.ClassName);
-                propfunc += "{\r\n";
-
-                foreach (KeyValuePair<int, Property> kv in cmd.CurrentFile.Properties)
-                {
-                    Property property = kv.Value;
-
-                    if (property.Name == null)
-                        {
-                        continue;
-                    }
-
-                    propfunc += string.Format("\t// [_Zp_Public_Prop] {0} of type {1}\r\n", property.Name.ToUpper(), property.Type.ToUpper());
-                    propfunc += string.Format("\t//Saturn::EntityScrviptManager::Get().AddProperty( \"{0}\", \"{1}\", (void*)&{2}::{1});\r\n", cmd.CurrentFile.ClassName, property.Name, cmd.CurrentFile.ClassName);
-                }
-
-                propfunc += "}\r\n";
-                propfunc += "//^^^ Public Properties\r\n";
-                cmd.GeneratedSource.AppendLine(propfunc);
-                */
-
 
                 // Auto-Registration (DLL only).
                 if (ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist)
@@ -504,7 +484,7 @@ namespace SaturnBuildTool.Tools
                     call += string.Format("\t_Z_{0}_RT_Editor()\r\n", cmd.CurrentFile.ClassName);
                     call += "\t{\r\n";
                     //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
-                    call += string.Format("\t\t_RT_Z_CreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\t\t_ReflCreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
                     //call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
                     call += "\r\n";
                     call += "\t}\r\n";

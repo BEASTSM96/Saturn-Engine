@@ -179,10 +179,6 @@ namespace Saturn {
 		m_LinePipeline = Ref<Pipeline>::Create( PipelineSpec );
 	}
 
-	void Renderer2D::Recreate()
-	{
-	}
-
 	void Renderer2D::Reset()
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
@@ -514,13 +510,13 @@ namespace Saturn {
 		m_LineVertexCount += 2;
 	}
 
-	void Renderer2D::SetCamera( const glm::mat4& viewProjection, const glm::mat4& view )
+	void Renderer2D::SetCamera( const RendererCamera& rRendererCamera )
 	{
-		m_CameraViewProjection = viewProjection;
-		m_CameraView = view;
+		m_CameraView = rRendererCamera.ViewMatrix;
+		m_CameraViewProjection = rRendererCamera.Camera.ProjectionMatrix() * rRendererCamera.ViewMatrix;
 	}
 
-	void Renderer2D::PreRender() 
+	void Renderer2D::PreRender()
 	{
 		uint32_t frame = Renderer::Get().GetCurrentFrame();
 		
@@ -539,13 +535,6 @@ namespace Saturn {
 		if( !m_TargetRenderPass || !m_CurrentQuad || !m_CurrentLine )
 		{
 			return;
-		}
-
-		if( m_Resized )
-		{
-			Recreate();
-
-			m_Resized = false;
 		}
 
 		CmdBeginDebugLabel( m_CommandBuffer, "Late Composite (Renderer2D)" );

@@ -122,6 +122,7 @@ namespace Saturn {
 
 		m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
+		// TODO: Package BRDF texture into AssetBundle in dist
 		m_RendererData.BRDFLUT_Texture = Ref<Texture2D>::Create( "content/textures/BRDF_LUT.tga", AddressingMode::Repeat, false );
 
 		m_RendererData.SSAOPassTimer.Reset();
@@ -1042,9 +1043,12 @@ namespace Saturn {
 
 		m_pScene = pScene;
 
-		m_RendererData.SceneEnvironment->Turbidity = 0.0f;
-		m_RendererData.SceneEnvironment->Azimuth = 0.0f;
-		m_RendererData.SceneEnvironment->Inclination = 0.0f;
+		if( m_RendererData.SceneEnvironment )
+		{
+			m_RendererData.SceneEnvironment->Turbidity = 0.0f;
+			m_RendererData.SceneEnvironment->Azimuth = 0.0f;
+			m_RendererData.SceneEnvironment->Inclination = 0.0f;
+		}
 
 		// Find the skylight entity and set the turbidity, azimuth, inclination.
 		auto view = m_pScene->GetAllEntitiesWith<SkylightComponent>();
@@ -1052,6 +1056,9 @@ namespace Saturn {
 		for( auto& entity : view )
 		{
 			auto& skylight = entity->GetComponent<SkylightComponent>();
+
+			if( !m_RendererData.SceneEnvironment )
+				m_RendererData.SceneEnvironment = Ref<EnvironmentMap>::Create();
 
 			m_RendererData.SceneEnvironment->Turbidity = skylight.Turbidity;
 			m_RendererData.SceneEnvironment->Azimuth = skylight.Azimuth;
@@ -2102,8 +2109,8 @@ namespace Saturn {
 		TexturePassDescriptorSet  = nullptr;
 
 		// Vertex and Index buffers
-		QuadVertexBuffer->Terminate();
-		QuadIndexBuffer->Terminate();
+		QuadVertexBuffer->Destroy();
+		QuadIndexBuffer->Destroy();
 
 		// Framebuffers
 		GeometryFramebuffer       = nullptr;

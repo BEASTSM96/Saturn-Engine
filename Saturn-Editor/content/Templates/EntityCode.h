@@ -2,6 +2,7 @@
 
 #include "Saturn/Core/Timestep.h"
 #include "Saturn/GameFramework/Core/GameScript.h"
+#include "Saturn/Scene/Entity.h"
 
 #include "__FILE_NAME__.Gen.h"
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Saturn/Core/Timestep.h"
-
 #include "Saturn/GameFramework/Character.h"
 
 #include "__FILE_NAME__.Gen.h"

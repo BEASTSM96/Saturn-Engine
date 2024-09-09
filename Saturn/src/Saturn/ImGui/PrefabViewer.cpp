@@ -50,7 +50,7 @@ namespace Saturn {
 
 		AddPrefab();
 
-		m_SceneRenderer = Ref<SceneRenderer>::Create();
+		m_SceneRenderer = Ref<SceneRenderer>::Create( SceneRendererFlag_RenderGrid );
 		m_SceneRenderer->SetDynamicSky( 2.0f, 0.0f, 0.0f );
 		m_SceneRenderer->SetCurrentScene( m_Prefab->GetScene().Get() );
 

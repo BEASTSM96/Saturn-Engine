@@ -78,7 +78,7 @@ namespace Saturn {
 		void SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor );
 		void SubmitLine( const glm::vec3& rStart, const glm::vec3& rEnd, const glm::vec4& rColor, float Thinkness );
 
-		void SetCamera( const glm::mat4& viewProjection, const glm::mat4& view );
+		void SetCamera( const RendererCamera& rRendererCamera );
 
 		void PreRender();
 
@@ -88,7 +88,6 @@ namespace Saturn {
 
 	private:
 		void LateInit( Ref<Pass> targetPass = nullptr, Ref<Framebuffer> framebuffer = nullptr);
-		void Recreate();
 		void Reset();
 
 		void RenderAll();

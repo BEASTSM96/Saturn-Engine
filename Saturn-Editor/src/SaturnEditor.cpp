@@ -42,8 +42,8 @@
 class EditorApplication final : public Saturn::Application
 {
 public:
-	explicit EditorApplication( const Saturn::ApplicationSpecification& spec )
-		: Application( spec )
+	explicit EditorApplication( const Saturn::ApplicationSpecification& spec, const std::filesystem::path& rProjectPath )
+		: Application( spec ), m_ProjectPath( rProjectPath )
 	{
 		// Setup user settings and find the project path.
 		Saturn::EngineSettingsSerialiser uss;
@@ -53,6 +53,12 @@ public:
 		// TODO: Remove this
 		// We can't remove until we no longer need editor assets for Dist.
 		m_RootContentPath = std::filesystem::current_path() / "content";
+
+		if( m_ProjectPath.empty() )
+		{
+			// TODO: if there is not startup project, then go to recent projects, if none, show dialog telling user to go to project browser.
+			m_ProjectPath = Saturn::EngineSettings::Get().StartupProject;
+		}
 	}
 
 	virtual void OnInit() override
@@ -73,12 +79,17 @@ public:
 
 private:
 	Saturn::EditorLayer* m_EditorLayer = nullptr;
+	std::filesystem::path m_ProjectPath;
 };
 
 Saturn::Application* Saturn::CreateApplication( int argc, char** argv ) 
 {	
+	std::string projectPath = "";
+	if( argc > 1 )
+		projectPath = argv[1];
+
 	ApplicationSpecification spec;
 	spec.Flags = ApplicationFlag_CreateSceneRenderer;
 
-	return new EditorApplication( spec );
+	return new EditorApplication( spec, projectPath );
 }
