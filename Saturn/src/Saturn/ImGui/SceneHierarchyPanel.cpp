@@ -225,8 +225,6 @@ namespace Saturn {
 
 			DrawAddComponents<RigidbodyComponent>( "Rigidbody", m_SelectionContexts[ 0 ] );
 
-			DrawAddComponents<PhysicsMaterialComponent>( "Physics material", m_SelectionContexts[ 0 ] );
-
 			DrawAddComponents<BillboardComponent>( "Billboard", m_SelectionContexts[ 0 ] );
 
 			DrawAddComponents<AudioPlayerComponent>( "Audio Player", m_SelectionContexts[ 0 ] );
@@ -382,7 +380,7 @@ namespace Saturn {
 			}
 		}
 
-		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
+		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
 		{
 			auto& translation = tc.Position;
 			glm::vec3 rotation = glm::degrees( tc.GetRotationEuler() );
@@ -476,7 +474,7 @@ namespace Saturn {
 			ImGui::NextColumn();
 		} );
 
-		DrawComponent<CameraComponent>( "Camera", entity, [&]( auto& cc )
+		DrawComponent<CameraComponent>( "Camera", entity, []( auto& cc )
 		{
 			Auxiliary::DrawBoolControl( "Main Camera", cc.MainCamera );
 			Auxiliary::DrawFloatControl( "Field of View", cc.Fov, 10.0f, 100.0f );
@@ -493,7 +491,7 @@ namespace Saturn {
 
 		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
 		{
-			Auxiliary::DrawFloatControl( "Intensity", dlc.Intensity, 110.0f );
+			Auxiliary::DrawFloatControl( "Intensity", dlc.Intensity, 0.0f, 110.0f );
 			Auxiliary::DrawBoolControl( "Cast shadows", dlc.CastShadows );
 			Auxiliary::DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
 		} );
@@ -541,18 +539,96 @@ namespace Saturn {
 			Auxiliary::DrawBoolControl( "IsTrigger", cc.IsTrigger );
 		} );
 
-		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, [&]( auto& mcc )
+		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, []( auto& mcc )
 		{
 			Auxiliary::DrawBoolControl( "IsTrigger", mcc.IsTrigger );
 		} );
 
-		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, []( auto& rb )
+		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, [&]( auto& rb )
 		{
-			Auxiliary::DrawBoolControl( "Is Kinematic", rb.IsKinematic );
+			Auxiliary::DrawBoolControl( "Kinematic Body", rb.IsKinematic );
 			Auxiliary::DrawBoolControl( "Use CCD", rb.UseCCD );
 
 			Auxiliary::DrawFloatControl( "Mass", rb.Mass );
 			Auxiliary::DrawFloatControl( "Linear Drag", rb.LinearDrag );
+			
+			//////////////////////////////////////////////////////////////////////////
+
+			ImGui::Columns( 2 );
+			ImGui::SetColumnWidth( 0, 125.0f );
+
+			ImGui::BeginHorizontal( "rbMaterial" );
+			{
+				ImGui::Text( "Physics Material" );
+
+				if( ImGui::BeginItemTooltip() )
+				{
+					ImGui::Text( "This will override the meshes physics material to an asset of your choice." );
+					ImGui::Text( "If there is no mesh then the engine will automatically use the project default physics material. If there is no project default then it will create a internal mesh for it." );
+					ImGui::Text( "You do not need to change this if you wish to keep using the meshes physics material." );
+
+					ImGui::EndTooltip();
+				}
+
+				ImGui::NextColumn();
+
+				if( rb.MaterialAssetID != 0 )
+				{
+					ImGui::InputText( "##physMaterial", ( char* ) std::to_string( rb.MaterialAssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				
+					if( ImGui::BeginItemTooltip() )
+					{
+						ImGui::Text( "Overridden." );
+						ImGui::EndTooltip();
+					}
+				}
+				else if( entity->HasComponent<StaticMeshComponent>() )
+				{
+					if( auto& rStaticMesh = entity->GetComponent<StaticMeshComponent>().Mesh; rStaticMesh != nullptr )
+					{
+						ImGui::InputText( "##physMaterial", ( char* ) std::to_string( rStaticMesh->GetPhysicsMaterial() ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+
+						if( ImGui::BeginItemTooltip() )
+						{
+							ImGui::Text( "Inherited from static mesh." );
+							ImGui::EndTooltip();
+						}
+					}
+				}
+				else 
+				{
+					ImGui::InputText( "##physMaterial", ( char* ) "No Asset", 256, ImGuiInputTextFlags_ReadOnly );
+				}
+
+				bool openAssetFinder = false;
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24.0f, 24.0f ) ) )
+				{
+					openAssetFinder = !openAssetFinder;
+					m_CurrentFinderType = AssetType::PhysicsMaterial;
+
+					if( rb.MaterialAssetID != 0 )
+						m_CurrentAssetID = rb.MaterialAssetID;
+				}
+
+				// TODD: Remove double check (condition was already checked when we render the input text)
+				if( rb.MaterialAssetID != 0 )
+				{
+					if( ImGui::Button( "Reset", ImVec2( 24.0f, 24.0f ) ) )
+					{
+						rb.MaterialAssetID = 0;
+					}
+				}
+
+				if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &openAssetFinder, m_CurrentAssetID ) )
+				{
+					rb.MaterialAssetID = m_CurrentAssetID;
+				}
+			}
+			ImGui::EndHorizontal();
+
+			ImGui::Columns( 1 );
+
+			//////////////////////////////////////////////////////////////////////////
 
 			ImGui::PushID( "rbPos" );
 
@@ -768,7 +844,7 @@ namespace Saturn {
 			}
 		} );
 
-		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, [&]( auto& al )
+		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, []( auto& al )
 		{
 			Auxiliary::DrawBoolControl( "Primary", al.Primary );
 			Auxiliary::DrawVec3Control( "Direction", al.Direction );

@@ -290,19 +290,6 @@ namespace Saturn {
 			rEmitter << YAML::EndMap;
 		}
 
-		// Physics material
-		if( entity->HasComponent<PhysicsMaterialComponent>() )
-		{
-			rEmitter << YAML::Key << "PhysicsMaterialComponent";
-			rEmitter << YAML::BeginMap;
-
-			auto& pmc = entity->GetComponent< PhysicsMaterialComponent >();
-
-			rEmitter << YAML::Key << "AssetID" << YAML::Value << pmc.AssetID;
-
-			rEmitter << YAML::EndMap;
-		}
-
 		// Camera Component
 		if ( entity->HasComponent<CameraComponent>() )
 		{
@@ -572,14 +559,6 @@ namespace Saturn {
 				{
 					rb.LockFlags = 0;
 				}
-			}
-
-			auto pmc = entity[ "PhysicsMaterialComponent" ];
-			if( pmc )
-			{
-				auto& m = DeserialisedEntity->AddComponent< PhysicsMaterialComponent >();
-
-				m.AssetID = pmc[ "AssetID" ].as< uint64_t >( 0 );
 			}
 
 			auto cc = entity[ "CameraComponent" ];

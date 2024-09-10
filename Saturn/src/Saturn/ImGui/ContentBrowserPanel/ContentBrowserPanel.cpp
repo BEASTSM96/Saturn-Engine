@@ -199,13 +199,13 @@ namespace Saturn {
 
 				ImGui::PushID( "PrjScripts" );
 
-				bool opened = ImGui::TreeNodeEx( "Scripts##PrjScripts", flags );
+				bool opened = ImGui::TreeNodeEx( "Source##PrjScripts", flags );
 
 				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 				{
 					ClearSelection();
 				
-					// Switch and set path to the game content.
+					// Switch and set path to the game source.
 					m_ViewMode = CBViewMode::Scripts;
 					ResetPath( Project::GetActiveProject()->GetRootDir() );
 				}
@@ -282,11 +282,18 @@ namespace Saturn {
 		{
 			if( ImGui::MenuItem( "New Folder" ) )
 			{
-				std::filesystem::create_directories( m_CurrentPath / "New Folder" );
+				auto newPath = m_CurrentPath / "New Folder";
+				int32_t count = GetFilenameCount( "New Folder" );
+
+				if( count >= 1 )
+				{
+					newPath = std::format( "{0}\\{1} ({2})", m_CurrentPath.string(), "New Folder", count );
+				}
+
+				std::filesystem::create_directories( newPath );
 
 				UpdateFiles( true );
-
-				FindAndRenameItem( m_CurrentPath / "New Folder" );
+				FindAndRenameItem( newPath.stem() );
 			}
 
 			if( ImGui::MenuItem( "New Material" ) )
@@ -336,16 +343,16 @@ namespace Saturn {
 
 				UpdateFiles( true );
 				
-				FindAndRenameItem( asset->Path );
+				FindAndRenameItem( asset->Name );
 			}
 
 			if( ImGui::MenuItem( "New Physics Material" ) )
 			{
 				auto id = AssetManager::Get().CreateAsset( AssetType::PhysicsMaterial );
 				auto asset = AssetManager::Get().FindAsset( id );
-				auto newPath = m_CurrentPath / "Untitled Physics Material.smaterial";
+				auto newPath = m_CurrentPath / "Untitled Physics Material.sphymaterial";
 
-				int32_t count = GetFilenameCount( "Untitled Physics Material.smaterial" );
+				int32_t count = GetFilenameCount( "Untitled Physics Material.sphymaterial" );
 
 				if( count >= 1 )
 				{
@@ -363,7 +370,7 @@ namespace Saturn {
 				ars.Serialise( AssetManager::Get().GetAssetRegistry() );
 
 				UpdateFiles( true );
-				FindAndRenameItem( asset->Path );
+				FindAndRenameItem( asset->Name );
 			}
 
 			if( ImGui::MenuItem( "New Scene" ) )
@@ -380,7 +387,11 @@ namespace Saturn {
 
 				asset->SetAbsolutePath( newPath );
 
+				// Only set id and path, temporary asset
 				Ref<Scene> newScene = Ref<Scene>::Create();
+				newScene->SetAbsolutePath( newPath );
+				newScene->ID = id;
+
 				Scene* CurrentScene = GActiveScene;
 				Scene::SetActiveScene( newScene.Get() );
 
@@ -392,7 +403,7 @@ namespace Saturn {
 				AssetManager::Get().Save();
 
 				UpdateFiles( true );
-				FindAndRenameItem( asset->Path );
+				FindAndRenameItem( newScene->Name );
 			}
 
 			if( ImGui::MenuItem( "New Graph Sound" ) )
@@ -423,13 +434,21 @@ namespace Saturn {
 
 			ImGui::EndMenu();
 		}
+
+		if( ImGui::MenuItem( "Show folder in explorer" ) )
+		{
+			std::wstring CommandLine = L"";
+			CommandLine = std::format( L"explorer.exe \"{0}\"", m_CurrentPath.wstring() );
+
+			DeatchedProcess dp( CommandLine );
+		}
 	}
 
 	void ContentBrowserPanel::ScriptsPopupContextMenu()
 	{
 		if( ImGui::BeginMenu( "Create" ) )
 		{
-			if( ImGui::MenuItem( "Script" ) )
+			if( ImGui::MenuItem( "New Class" ) )
 			{
 				m_OpenScriptsPopup = true;
 			}
@@ -534,7 +553,7 @@ namespace Saturn {
 			if( Auxiliary::TreeNode( Project::GetActiveProject()->GetConfig().Name.c_str() ) )
 			{
 				DrawRootFolder( CBViewMode::Assets );
-			//	DrawRootFolder( CBViewMode::Scripts );
+				DrawRootFolder( CBViewMode::Scripts );
 
 				Auxiliary::EndTreeNode();
 			}
@@ -673,7 +692,7 @@ namespace Saturn {
 				ImGui::OpenPopup( "Create A New Class##Create_Script" );
 
 			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &m_OpenScriptsPopup, ImGuiWindowFlags_NoMove ) )
+			if( ImGui::BeginPopupModal( "Create A New Class##Create_Script", &m_OpenScriptsPopup, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				bool PopupModified = false;
 
@@ -763,7 +782,7 @@ namespace Saturn {
 				ImGui::OpenPopup( "Create A New Class Instance (Prefab)##Create_ClassIns" );
 
 			ImGui::SetNextWindowSize( { 350.0F, 0.0F } );
-			if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &m_OpenClassInstancePopup, ImGuiWindowFlags_NoMove ) )
+			if( ImGui::BeginPopupModal( "Create A New Class Instance (Prefab)##Create_ClassIns", &m_OpenClassInstancePopup, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				bool PopupModified = false;
 
@@ -895,47 +914,6 @@ namespace Saturn {
 		}
 	}
 
-	void ContentBrowserPanel::DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData )
-	{
-		if( ImGui::MenuItem( rKeyName.c_str() ) )
-		{
-			// In order to create this, we will need to create the class the user wants then we can create the prefab from it.
-
-			// Create the prefab asset
-			Ref<Prefab> PrefabAsset = AssetManager::Get().CreateAsset<Prefab>( AssetType::Prefab, AssetRegistryType::Game );
-			PrefabAsset->Create();
-
-			auto asset = AssetManager::Get().FindAsset( PrefabAsset->ID );
-
-			// Create the class in the prefab scene.
-			// Swap context
-			Scene* OldActiveScene = Scene::GetActiveScene();
-			Scene::SetActiveScene( PrefabAsset->GetScene().Get() );
-
-			Ref<Entity> entity = GameModule::Get().CreateEntity( rData.Name );
-			PrefabAsset->SetEntity( entity );
-			
-			// Swap back to the current scene.
-			Scene::SetActiveScene( OldActiveScene );
-
-			// Set asset path
-			std::filesystem::path path = m_CurrentPath / rData.Name;
-			path.replace_extension( ".prefab" );
-
-			PrefabAsset->SetAbsolutePath( path );
-			asset->SetAbsolutePath( path ); // HACK
-
-			// Serialise
-			PrefabSerialiser ps;
-			ps.Serialise( PrefabAsset );
-
-			AssetRegistrySerialiser ars;
-			ars.Serialise( AssetManager::Get().GetAssetRegistry() );
-
-			UpdateFiles( true );
-		}
-	}
-
 	//////////////////////////////////////////////////////////////////////////
 	// POPUPS
 
@@ -1054,7 +1032,7 @@ namespace Saturn {
 		if( ImGui::BeginPopupModal( "Import Mesh##IMPORT_MESH", &m_ShowAssetImportPopup, ImGuiWindowFlags_NoMove ) )
 		{
 			static std::filesystem::path s_GLTFBinPath = "";
-			static bool s_UseBinFile = true;
+			static bool s_UseBinFile = false;
 
 			ImGui::BeginVertical( "##inputv" );
 
@@ -1190,7 +1168,7 @@ namespace Saturn {
 	{
 		ClearSearchQuery();
 
-		m_ScriptPath = rProjectRootPath / "Source";
+		m_ScriptPath = Project::GetActiveProject()->GetSourceDir();
 
 		switch( m_ViewMode )
 		{
@@ -1201,7 +1179,7 @@ namespace Saturn {
 
 			case Saturn::CBViewMode::Scripts: 
 			{
-				m_CurrentViewModeDirectory = rProjectRootPath / "Source";
+				m_CurrentViewModeDirectory = m_ScriptPath;
 			} break;
 		}
 
@@ -1219,11 +1197,8 @@ namespace Saturn {
 		UpdateFiles( true );
 	}
 
-	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
+	void ContentBrowserPanel::GetContentFiles( bool clear )
 	{
-		if( clear )
-			m_Files.clear();
-
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
 			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
@@ -1250,6 +1225,49 @@ namespace Saturn {
 			m_Files.push_back( item );
 
 			m_FilesNeedSorting = true;
+		}
+	}
+
+	void ContentBrowserPanel::GetSourceFiles( bool clear ) 
+	{
+		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
+		{
+			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
+			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
+
+			// Item will never exist if we have cleared the list.
+			if( !clear )
+			{
+				if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
+				{
+					if( !std::filesystem::exists( rEntry ) )
+						m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
+
+					continue;
+				}
+			}
+
+			if( auto path = rEntry.path(); path.extension() != ".h" || path.extension() != ".cpp" )
+				continue;
+
+			m_Files.push_back( item );
+			m_FilesNeedSorting = true;
+		}
+	}
+
+	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )
+	{
+		if( clear )
+			m_Files.clear();
+
+		switch( m_ViewMode )
+		{
+			case CBViewMode::Assets:
+				GetContentFiles( clear );
+				break;
+			case CBViewMode::Scripts:
+				GetSourceFiles( clear );
+				break;
 		}
 
 		SortFiles();

@@ -37,9 +37,6 @@
 
 namespace Saturn {
 
-//	static AssetID s_DefaultPhysicsMaterial = 13151293699070629621;
-	static AssetID s_DefaultPhysicsMaterial = 1421817985369887560;
-
 	//////////////////////////////////////////////////////////////////////////
 
 	void PhysicsShape::Detach( physx::PxRigidActor& rActor )
@@ -54,6 +51,23 @@ namespace Saturn {
 		data.word1 = BIT( 0 );
 
 		m_Shape->setSimulationFilterData( data );
+	}
+
+	Ref<PhysicsMaterialAsset> PhysicsShape::GetMaterial( const Ref<StaticMesh>& rMesh )
+	{
+		Ref<PhysicsMaterialAsset> materialAsset;
+
+		Ref<Project> activeProject = Project::GetActiveProject();
+		if( rMesh->GetPhysicsMaterial() == 0 || rMesh->GetPhysicsMaterial() == activeProject->GetDefaultPhysicsMaterialAsset() )
+		{
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( activeProject->GetDefaultPhysicsMaterialAsset() );
+		}
+		else
+		{
+			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( rMesh->GetPhysicsMaterial() );
+		}
+
+		return materialAsset;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -81,14 +95,15 @@ namespace Saturn {
 
 		glm::vec3 halfSize = size / 2.0f;
 
-		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		Ref<PhysicsMaterialAsset> materialAsset = GetMaterial( mesh );
 		physx::PxMaterial* mat = nullptr;
 
-		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
-		else
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
-			
+		// No material was found, so this means two things, one the project has no default material or (two) the mesh/project has a material asset but it can't be found.
+		if( !materialAsset )
+		{
+			materialAsset = Ref<PhysicsMaterialAsset>::Create( 1.0f, 1.0f, 1.0f );
+		}
+
 		mat = &materialAsset->GetMaterial();
 
 		physx::PxBoxGeometry BoxGeometry = physx::PxBoxGeometry( halfSize.x, halfSize.y, halfSize.z );
@@ -134,16 +149,16 @@ namespace Saturn {
 
 		float halfSize = size / 2.0f;
 
-		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		Ref<PhysicsMaterialAsset> materialAsset = GetMaterial( mesh );
 		physx::PxMaterial* mat = nullptr;
 
-		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
-		else
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
+		// No material was found, so this means two things, one the project has no default material or (two) the mesh/project has a material asset but it can't be found.
+		if( !materialAsset )
+		{
+			materialAsset = Ref<PhysicsMaterialAsset>::Create( 1.0f, 1.0f, 1.0f );
+		}
 
 		mat = &materialAsset->GetMaterial();
-
 
 		physx::PxSphereGeometry SphereGoemetry( halfSize );
 
@@ -189,13 +204,14 @@ namespace Saturn {
 		if( scale.y != 0.0f && height == 0.0f )
 			height *= scale.y;
 
-		Ref<PhysicsMaterialAsset> materialAsset = nullptr;
+		Ref<PhysicsMaterialAsset> materialAsset = GetMaterial( mesh );
 		physx::PxMaterial* mat = nullptr;
 
-		if( mesh->GetPhysicsMaterial() == 0 || mesh->GetPhysicsMaterial() == s_DefaultPhysicsMaterial )
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( s_DefaultPhysicsMaterial, AssetRegistryType::Game );
-		else
-			materialAsset = AssetManager::Get().GetAssetAs<PhysicsMaterialAsset>( mesh->GetPhysicsMaterial() );
+		// No material was found, so this means two things, one the project has no default material or (two) the mesh/project has a material asset but it can't be found.
+		if( !materialAsset )
+		{
+			materialAsset = Ref<PhysicsMaterialAsset>::Create( 1.0f, 1.0f, 1.0f );
+		}
 
 		mat = &materialAsset->GetMaterial();
 

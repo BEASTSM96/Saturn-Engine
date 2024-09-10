@@ -179,8 +179,10 @@ namespace Saturn {
 			pDrawList->AddRectFilled( InfoTopLeft, BottomRight, IM_COL32( 47, 47, 47, 255 ), 5.0f, ImDrawFlags_RoundCornersBottom );
 
 			// Draw line between thumbnail and info.
-			//pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
-			pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_Asset->Type ), 1.5f );
+			if( m_Asset )
+				pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, AssetTypeToColor( m_Asset->Type ), 1.5f );
+			else
+				pDrawList->AddLine( ThumbnailBottomRight, InfoTopLeft, IM_COL32( 255, 0, 0, 255 ), 1.5f );
 
 			ImGui::ItemSize( ImRect( TopLeft, BottomRight ).Min, style.FramePadding.y );
 			ImGui::ItemAdd( ImRect( TopLeft, BottomRight ), ImGui::GetID( m_Path.c_str() ) );
@@ -213,9 +215,12 @@ namespace Saturn {
 
 					ImGui::Text( "%s", m_Path.string().c_str() );
 					
-					ImGui::Text( "Asset: %llu", m_Asset->ID );
-					ImGui::Text( "Asset Name: %s", m_Asset->Name.c_str() );
-					ImGui::Text( "Asset Version: %llu", m_Asset->Version );
+					if( m_Asset )
+					{
+						ImGui::Text( "Asset: %llu", m_Asset->ID );
+						ImGui::Text( "Asset Name: %s", m_Asset->Name.c_str() );
+						ImGui::Text( "Asset Version: %llu", m_Asset->Version );
+					}
 
 					ImGui::EndTooltip();
 				}
@@ -240,7 +245,7 @@ namespace Saturn {
 
 			HandleDragDrop();
 
-			if( Open )
+			if( Open && m_Asset )
 			{
 				switch( m_Asset->Type )
 				{

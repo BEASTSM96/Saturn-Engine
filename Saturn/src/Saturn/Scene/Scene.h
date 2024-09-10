@@ -334,26 +334,3 @@ namespace Saturn {
 		friend class SceneRenderer;
 	};
 }
-
-namespace std {
-
-	template <>
-	struct hash<Saturn::Scene>
-	{
-		std::size_t operator()( const Saturn::Scene& scene) const
-		{
-			return hash<uint64_t>()( ( uint64_t ) scene.ID );
-		}
-
-		std::size_t operator()( Saturn::Scene* scene ) const
-		{
-			return hash<uint64_t>()( ( uint64_t ) scene->ID );
-		}
-
-		std::size_t operator()( Saturn::Ref<Saturn::Scene> scene ) const
-		{
-			return hash<uint64_t>()( ( uint64_t ) scene->ID );
-		}
-	};
-
-}

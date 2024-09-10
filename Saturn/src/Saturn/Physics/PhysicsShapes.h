@@ -37,6 +37,8 @@
 
 namespace Saturn {
 
+	class PhysicsMaterialAsset;
+
 	class PhysicsShape : public RefTarget
 	{
 	public:
@@ -48,6 +50,9 @@ namespace Saturn {
 
 		// Only use this for basic shapes as this only works for one shape.
 		void SetFilterData();
+
+	protected:
+		Ref<PhysicsMaterialAsset> GetMaterial( const Ref<StaticMesh>& rMesh );
 
 	protected:
 		ShapeType m_Type = ShapeType::Unknown;

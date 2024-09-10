@@ -108,7 +108,7 @@ namespace Saturn {
 		int i = 0;
 		for( auto& pFolder : m_CurrentPath )
 		{
-			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Scripts";
+			const char* name = m_ViewMode == CBViewMode::Assets ? "Assets" : "Source";
 
 			if( i == 0 && pFolder != name )
 				continue;

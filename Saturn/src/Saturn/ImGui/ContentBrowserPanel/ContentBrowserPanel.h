@@ -87,11 +87,13 @@ namespace Saturn {
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
 		void DrawClassHierarchy( const std::string& rKeyName, const SClassMetadata& rData );
-		void DrawCreateClass( const std::string& rKeyName, const SClassMetadata& rData );
 
 		void ClearSearchQuery();
 		void DrawImportSoundPopup();
 		void DrawImportMeshPopup();
+
+		void GetContentFiles( bool clear );
+		void GetSourceFiles( bool clear );
 
 	private:
 		std::filesystem::path m_ScriptPath;

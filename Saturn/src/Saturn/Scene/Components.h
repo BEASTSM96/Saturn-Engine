@@ -232,16 +232,12 @@ namespace Saturn {
 		bool UseCCD = false;
 		float Mass = 2.0f;
 		float LinearDrag = 1.0f;
-
 		uint32_t LockFlags = 0;
+
+		UUID MaterialAssetID = 0;
 
 		RigidbodyComponent() = default;
 		RigidbodyComponent( bool isKinematic ) : IsKinematic( isKinematic ) { }
-	};
-
-	struct PhysicsMaterialComponent
-	{
-		UUID AssetID = 0;
 	};
 
 	struct PointLightComponent
@@ -329,7 +325,7 @@ namespace Saturn {
 		StaticMeshComponent, 
 		DirectionalLightComponent, SkylightComponent, PointLightComponent,
 		CameraComponent,
-		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent, PhysicsMaterialComponent,
+		BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, RigidbodyComponent,
 		ScriptComponent, 
 		AudioPlayerComponent, AudioListenerComponent,
 		BillboardComponent>;

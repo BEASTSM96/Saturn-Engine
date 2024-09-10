@@ -583,278 +583,303 @@ namespace Saturn {
 
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 
-		ImGui::Begin( "Project settings", &m_ShowUserSettings );
-
-		ImGui::Text( "Startup Scene:" );
-		
-		if( s_OpenAssetFinderPopup )
-			ImGui::OpenPopup( "AssetFinderPopup" );
-		
-		ImGui::SameLine();
-		startupScene == 0 ? ImGui::Text( "None" ) : ImGui::Text( asset->Name.c_str() );
-		ImGui::SameLine();
-		
-		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), { 24.0f, 24.0f } ) )
-			s_OpenAssetFinderPopup = true;
-
-		Auxiliary::DrawAssetFinder( AssetType::Scene, &s_OpenAssetFinderPopup, ActiveProject->GetConfig().StartupSceneID );
-
-		auto boldFont = rIO.Fonts->Fonts[ 1 ];
-		ImGui::PushFont( boldFont );
-
-		// Scene Renderer Settings
-
-		ImGui::Text( "Ambient Occlusion Rendering Technique" );
-		ImGui::Separator();
-
-		ImGui::PopFont();
-
-		const char* AOTechniques[] = { "SSAO", "HBAO", "None" };
-		AOTechnique selectedTech = Application::Get().PrimarySceneRenderer().GetAOTechnique();
-
-		const char* preview = AOTechniques[ ( int ) selectedTech ];
-
-		ImGui::SetNextItemWidth( 130.0f );
-		if( ImGui::BeginCombo( "##aotechniques", preview, ImGuiComboFlags_HeightSmall ) )
+		if( ImGui::Begin( "Project settings", &m_ShowUserSettings ) ) 
 		{
-			for( int i = 0; i < IM_ARRAYSIZE( AOTechniques ); i++ )
+			auto boldFont = rIO.Fonts->Fonts[ 1 ];
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Project Defaults" );
+			ImGui::Separator();
+			ImGui::PopFont();
+
+			if( s_OpenAssetFinderPopup )
+				ImGui::OpenPopup( "AssetFinderPopup" );
+
+			ImGui::BeginHorizontal( "##prj_strtscene" );
 			{
-				AOTechnique technique = ( AOTechnique ) i;
-				bool selected = ( selectedTech == technique );
+				ImGui::Text( "Startup Scene:" );
+				startupScene == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( asset->Name.c_str() );
+
+				ImGui::Spring();
+
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), { 24.0f, 24.0f } ) )
+					s_OpenAssetFinderPopup = true;
+
+				if( Auxiliary::DrawAssetFinder( AssetType::Scene, &s_OpenAssetFinderPopup, rConfig.StartupSceneID ) )
+				{
+					ShouldSaveProject = true;
+				}
+			}
+			ImGui::EndHorizontal();
+
+			ImGui::BeginVertical( "##prj_defaults" );
+
+			ImGui::BeginHorizontal( "##prj_defmatasset" );
+			{
+				auto defaultMaterialID = ActiveProject->GetDefaultMaterialAsset();
+
+				ImGui::Text( "Default Material Asset:" );
+				defaultMaterialID == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( "%llu", defaultMaterialID );
+
+				ImGui::Spring();
+
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), { 24.0f, 24.0f } ) )
+					s_OpenAssetFinderPopup = true;
+
+				if( Auxiliary::DrawAssetFinder( AssetType::Material, &s_OpenAssetFinderPopup, defaultMaterialID ) )
+				{
+					ActiveProject->SetDefaultMaterialAsset( defaultMaterialID );
+					ShouldSaveProject = true;
+				}
+			}
+			ImGui::EndHorizontal();
+
+			ImGui::BeginHorizontal( "##prj_defphysmatasset" );
+			{
+				auto defaultMaterialID = ActiveProject->GetDefaultPhysicsMaterialAsset();
+
+				ImGui::Text( "Default Physics Material Asset:" );
+				defaultMaterialID == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( "%llu", defaultMaterialID );
+
+				ImGui::Spring();
+
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), { 24.0f, 24.0f } ) )
+					s_OpenAssetFinderPopup = true;
+
+				if( Auxiliary::DrawAssetFinder( AssetType::PhysicsMaterial, &s_OpenAssetFinderPopup, defaultMaterialID ) )
+				{
+					ActiveProject->SetDefaultPhysicsMaterialAsset( defaultMaterialID );
+					ShouldSaveProject = true;
+				}
+			}
+			ImGui::EndHorizontal();
+
+			ImGui::EndVertical();
+
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Action Bindings" );
+			ImGui::Separator();
+
+			ImGui::PopFont();
+
+			for( auto rIt = ActiveProject->GetActionBindings().begin(); rIt != ActiveProject->GetActionBindings().end(); )
+			{
+				auto& rBinding = *( rIt );
+
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, rBinding.Name.data(), rBinding.Name.length() );
+
+				std::string id = "##" + std::to_string( rBinding.ID );
 
 				ImGui::SetNextItemWidth( 130.0f );
-				if( ImGui::Selectable( AOTechniques[ i ], selected ) )
-					Application::Get().PrimarySceneRenderer().ChangeAOTechnique( technique );
-			}
-
-			ImGui::EndCombo();
-		}
-
-		ImGui::PushFont( boldFont );
-		ImGui::Text( "Action Bindings" );
-		ImGui::Separator();
-
-		ImGui::PopFont();
-
-		for( auto rIt = ActiveProject->GetActionBindings().begin(); rIt != ActiveProject->GetActionBindings().end(); )
-		{
-			auto& rBinding = *( rIt );
-
-			char buffer[ 256 ];
-			memset( buffer, 0, 256 );
-			memcpy( buffer, rBinding.Name.data(), rBinding.Name.length() );
-
-			std::string id = "##" + std::to_string( rBinding.ID );
-
-			ImGui::SetNextItemWidth( 130.0f );
-			if( ImGui::InputText( id.data(), buffer, 256 ) ) 
-			{
-				rBinding.Name = std::string( buffer );
-			}
-
-			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
-
-			ImGui::BeginHorizontal( rBinding.Name.data() );
-
-			ImGui::SetNextItemWidth( 130.0f );
-			if( ImGui::BeginCombo( "##KEYLIST", rBinding.ActionName.data() ) )
-			{
-				for( int i = 0; i < RubyKey::EnumSize; i++ )
+				if( ImGui::InputText( id.data(), buffer, 256 ) )
 				{
-					const auto& result = RubyKeyToString( (RubyKey) i );
-
-					// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
-					if( result.empty() )
-						continue;
-
-					bool IsSelected = ( rBinding.ActionName == result );
-
-					ImGui::PushID( i );
-
-					ImGui::SetNextItemWidth( 130.0f );
-					if( ImGui::Selectable( result.data(), IsSelected ) )
-					{
-						if( rBinding.Type == ActionBindingType::Mouse )
-							rBinding.MouseButton = RubyMouseButton::Unknown;
-
-						rBinding.Key = ( RubyKey ) i;
-						rBinding.Type = ActionBindingType::Key;
-						rBinding.ActionName = result;
-
-						ShouldSaveProject = true;
-					}
-
-					if( IsSelected )
-						ImGui::SetItemDefaultFocus();
-
-					ImGui::PopID();
+					rBinding.Name = std::string( buffer );
 				}
 
-				for( int i = 0; i < 5; i++ )
+				ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
+
+				ImGui::BeginHorizontal( rBinding.Name.data() );
+
+				ImGui::SetNextItemWidth( 130.0f );
+				if( ImGui::BeginCombo( "##KEYLIST", rBinding.ActionName.data() ) )
 				{
-					const auto& result = RubyMouseButtonToString( ( RubyMouseButton ) i );
-
-					// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
-					if( result.empty() )
-						continue;
-
-					bool IsSelected = ( rBinding.ActionName == result );
-
-					ImGui::PushID( i );
-
-					ImGui::SetNextItemWidth( 130.0f );
-					if( ImGui::Selectable( result.data(), IsSelected ) )
+					for( int i = 0; i < RubyKey::EnumSize; i++ )
 					{
-						if( rBinding.Type == ActionBindingType::Key )
-							rBinding.Key = RubyKey::UnknownKey;
+						const auto& result = RubyKeyToString( ( RubyKey ) i );
 
-						rBinding.MouseButton = ( RubyMouseButton ) i;
-						rBinding.Type = ActionBindingType::Mouse;
-						rBinding.ActionName = result;
+						// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
+						if( result.empty() )
+							continue;
 
-						ShouldSaveProject = true;
+						bool IsSelected = ( rBinding.ActionName == result );
+
+						ImGui::PushID( i );
+
+						ImGui::SetNextItemWidth( 130.0f );
+						if( ImGui::Selectable( result.data(), IsSelected ) )
+						{
+							if( rBinding.Type == ActionBindingType::Mouse )
+								rBinding.MouseButton = RubyMouseButton::Unknown;
+
+							rBinding.Key = ( RubyKey ) i;
+							rBinding.Type = ActionBindingType::Key;
+							rBinding.ActionName = result;
+
+							ShouldSaveProject = true;
+						}
+
+						if( IsSelected )
+							ImGui::SetItemDefaultFocus();
+
+						ImGui::PopID();
 					}
 
-					if( IsSelected )
-						ImGui::SetItemDefaultFocus();
+					for( int i = 0; i < 5; i++ )
+					{
+						const auto& result = RubyMouseButtonToString( ( RubyMouseButton ) i );
 
-					ImGui::PopID();
+						// This is here because of how we do our loop, some keys will be empty because the values to do not match up.
+						if( result.empty() )
+							continue;
+
+						bool IsSelected = ( rBinding.ActionName == result );
+
+						ImGui::PushID( i );
+
+						ImGui::SetNextItemWidth( 130.0f );
+						if( ImGui::Selectable( result.data(), IsSelected ) )
+						{
+							if( rBinding.Type == ActionBindingType::Key )
+								rBinding.Key = RubyKey::UnknownKey;
+
+							rBinding.MouseButton = ( RubyMouseButton ) i;
+							rBinding.Type = ActionBindingType::Mouse;
+							rBinding.ActionName = result;
+
+							ShouldSaveProject = true;
+						}
+
+						if( IsSelected )
+							ImGui::SetItemDefaultFocus();
+
+						ImGui::PopID();
+					}
+
+					ImGui::EndCombo();
 				}
 
-				ImGui::EndCombo();
+				if( ImGui::SmallButton( "-" ) )
+				{
+					rIt = ActiveProject->GetActionBindings().erase( rIt );
+					ShouldSaveProject = true;
+				}
+				else
+				{
+					++rIt;
+				}
+
+				ImGui::EndHorizontal();
 			}
 
-			if( ImGui::SmallButton( "-" ) )
+			if( ImGui::SmallButton( "+" ) )
 			{
-				rIt = ActiveProject->GetActionBindings().erase( rIt );
+				ActionBinding ab;
+				ab.Name = "Empty Binding";
+
+				int count = 0;
+				// Find all other actions bindings with the same name.
+				for( const auto& bindings : ActiveProject->GetActionBindings() )
+				{
+					if( bindings.Name.contains( "Empty Binding" ) )
+						count++;
+				}
+
+				if( count >= 1 )
+				{
+					ab.Name += " ";
+					ab.Name += std::to_string( count );
+				}
+
+				ActiveProject->AddActionBinding( ab );
 				ShouldSaveProject = true;
 			}
-			else
+
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Audio Groups" );
+			ImGui::Separator();
+			ImGui::PopFont();
+
+			for( auto rIt = ActiveProject->GetSoundGroups().begin(); rIt != ActiveProject->GetSoundGroups().end(); )
 			{
-				++rIt;
+				auto& rSoundGroup = *( rIt );
+
+				char buffer[ 256 ];
+				memset( buffer, 0, 256 );
+				memcpy( buffer, rSoundGroup->GetName().data(), rSoundGroup->GetName().length() );
+
+				// TODO: Change to unique ID
+				std::string id = "##entergrpname";
+
+				ImGui::SetNextItemWidth( 130.0f );
+				if( ImGui::InputText( id.data(), buffer, 256 ) )
+				{
+					rSoundGroup->SetName( std::string( buffer ) );
+				}
+
+				ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
+
+				ImGui::BeginHorizontal( rSoundGroup->GetName().data() );
+
+				if( ImGui::SmallButton( "-" ) )
+				{
+					rIt = ActiveProject->GetSoundGroups().erase( rIt );
+					ShouldSaveProject = true;
+				}
+				else
+				{
+					++rIt;
+				}
+
+				ImGui::EndHorizontal();
 			}
 
-			ImGui::EndHorizontal();
-		}
+			ImGui::PushID( "##nwSndGrp" );
 
-		if( ImGui::SmallButton( "+" ) ) 
-		{
-			ActionBinding ab;
-			ab.Name = "Empty Binding";
-
-			int count = 0;
-			// Find all other actions bindings with the same name.
-			for( const auto& bindings : ActiveProject->GetActionBindings() ) 
+			if( ImGui::SmallButton( "+" ) )
 			{
-				if( bindings.Name.contains( "Empty Binding" ) ) 
-					count++;
+				Ref<SoundGroup> group = Ref<SoundGroup>::Create( "New Sound Group" );
+				group->Init( false );
+
+				// Find all other sound groups with the same name.
+				int count = 0;
+				for( const auto& rGroups : ActiveProject->GetSoundGroups() )
+				{
+					if( rGroups->GetName().contains( "New Sound Group" ) )
+						count++;
+				}
+
+				if( count >= 1 )
+				{
+					std::string newName = std::format( "{0} ({1})", group->GetName(), std::to_string( count ) );
+					group->SetName( newName );
+				}
+
+				ActiveProject->AddSoundGroup( group );
+				ShouldSaveProject = true;
 			}
 
-			if( count >= 1 ) 
-			{
-				ab.Name += " ";
-				ab.Name += std::to_string( count );
-			}
+			ImGui::PopID();
 
-			ActiveProject->AddActionBinding( ab );
-			ShouldSaveProject = true;
-		}
-
-
-		// This does not matter because the editor is not designed to run in Dist, however, right now I want to keep this in release builds.
+			// This does not matter because the editor is not designed to run in Dist, however, right now I want to keep this in release builds.
 #if !defined(SAT_DIST)
-		ImGui::PushFont( boldFont );
-		ImGui::Text( "Project Debug information" );
-		ImGui::Separator();
-		ImGui::PopFont();
+			ImGui::PushFont( boldFont );
+			ImGui::Text( "Project Debug information" );
+			ImGui::Separator();
+			ImGui::PopFont();
 
-		ImGui::BeginVertical( "##PRJDBGV" );
+			ImGui::BeginVertical( "##PRJDBGV" );
 
-		auto drawDebugText = [](const std::string& id, const std::string& key, const std::string& value) 
-		{
-			ImGui::BeginHorizontal( id.c_str() );
-			ImGui::Text( key.c_str() );
-			ImGui::Text( " : " );
-			ImGui::Text( value.c_str() );
-			ImGui::EndHorizontal();
-		};
+			auto drawDebugText = []( const std::string& id, const std::string& key, const std::string& value )
+				{
+					ImGui::BeginHorizontal( id.c_str() );
+					ImGui::Text( "%s", key.c_str() );
+					ImGui::Text( " : " );
+					ImGui::Text( "%s", value.c_str() );
+					ImGui::EndHorizontal();
+				};
 
-		drawDebugText( "##PRJD1", "Root Path", ActiveProject->GetRootDir().string() );
-		drawDebugText( "##PRJD2", ".sproject Path", ActiveProject->GetConfig().Path.string() );
-		drawDebugText( "##PRJD3", "Assets Path", ActiveProject->GetFullAssetPath().string() );
-		drawDebugText( "##PRJD4", "Premake filename", ActiveProject->GetPremakeFile().string() );
-		drawDebugText( "##PRJD5", "Temp Path", ActiveProject->GetTempDir().string() );
-		drawDebugText( "##PRJD6", "Bin Path", ActiveProject->GetBinDir().string() );
-		drawDebugText( "##PRJD7", "Cache Path", ActiveProject->GetFullCachePath().string() );
+			drawDebugText( "##PRJD1", "Root Path", ActiveProject->GetRootDir().string() );
+			drawDebugText( "##PRJD2", ".sproject Path", ActiveProject->GetConfig().Path.string() );
+			drawDebugText( "##PRJD3", "Assets Path", ActiveProject->GetFullAssetPath().string() );
+			drawDebugText( "##PRJD4", "Premake filename", ActiveProject->GetPremakeFile().string() );
+			drawDebugText( "##PRJD5", "Temp Path", ActiveProject->GetTempDir().string() );
+			drawDebugText( "##PRJD6", "Bin Path", ActiveProject->GetBinDir().string() );
+			drawDebugText( "##PRJD7", "Cache Path", ActiveProject->GetFullCachePath().string() );
 
-		ImGui::EndVertical();
+			ImGui::EndVertical();
 #endif
-
-		ImGui::PushFont( boldFont );
-		ImGui::Text( "Audio Groups" );
-		ImGui::Separator();
-		ImGui::PopFont();
-
-		for( auto rIt = ActiveProject->GetSoundGroups().begin(); rIt != ActiveProject->GetSoundGroups().end(); )
-		{
-			auto& rSoundGroup = *( rIt );
-
-			char buffer[ 256 ];
-			memset( buffer, 0, 256 );
-			memcpy( buffer, rSoundGroup->GetName().data(), rSoundGroup->GetName().length() );
-
-			// TODO: Change to unique ID
-			std::string id = "##entergrpname";
-
-			ImGui::SetNextItemWidth( 130.0f );
-			if( ImGui::InputText( id.data(), buffer, 256 ) )
-			{
-				rSoundGroup->SetName( std::string( buffer ) );
-			}
-
-			ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
-
-			ImGui::BeginHorizontal( rSoundGroup->GetName().data() );
-
-			if( ImGui::SmallButton( "-" ) )
-			{
-				rIt = ActiveProject->GetSoundGroups().erase( rIt );
-				ShouldSaveProject = true;
-			}
-			else
-			{
-				++rIt;
-			}
-
-			ImGui::EndHorizontal();
 		}
-
-		ImGui::PushID( "##nwSndGrp" );
-
-		if( ImGui::SmallButton( "+" ) )
-		{
-			Ref<SoundGroup> group = Ref<SoundGroup>::Create( "New Sound Group" );
-			group->Init( false );
-
-			// Find all other sound groups with the same name.
-			int count = 0;
-			for( const auto& rGroups : ActiveProject->GetSoundGroups() )
-			{
-				if( rGroups->GetName().contains( "New Sound Group" ) )
-					count++;
-			}
-
-			if( count >= 1 )
-			{
-				std::string newName = std::format( "{0} ({1})", group->GetName(), std::to_string( count ) );
-				group->SetName( newName );
-			}
-
-			ActiveProject->AddSoundGroup( group );
-			ShouldSaveProject = true;
-		}
-
-		ImGui::PopID();
 
 		ImGui::End();
 

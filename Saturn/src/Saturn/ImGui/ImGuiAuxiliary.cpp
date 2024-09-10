@@ -29,8 +29,6 @@
 #include "sppch.h"
 #include "ImGuiAuxiliary.h"
 
-#include "Saturn/Asset/AssetRegistry.h"
-
 #include <backends/imgui_impl_vulkan.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -107,9 +105,6 @@ namespace Saturn::Auxiliary {
 
 		ImGuiIO& io = ImGui::GetIO();
 
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
-
 		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
@@ -126,13 +121,11 @@ namespace Saturn::Auxiliary {
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f } );
-		ImGui::PushFont( boldFont );
 		if( ( ImGui::Button( "X", buttonSize ) ) )
 		{
 			values.x = resetValue;
 			modified = true;
 		}
-		ImGui::PopFont();
 		ImGui::PopStyleColor( 3 );
 
 		ImGui::SameLine();
@@ -143,13 +136,11 @@ namespace Saturn::Auxiliary {
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f } );
-		ImGui::PushFont( boldFont );
 		if( ( ImGui::Button( "Y", buttonSize ) ) )
 		{
 			values.y = resetValue;
 			modified = true;
 		}
-		ImGui::PopFont();
 		ImGui::PopStyleColor( 3 );
 
 		ImGui::SameLine();
@@ -160,13 +151,11 @@ namespace Saturn::Auxiliary {
 		ImGui::PushStyleColor( ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f } );
 		ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f } );
-		ImGui::PushFont( boldFont );
 		if( ( ImGui::Button( "Z", buttonSize ) ) )
 		{
 			values.z = resetValue;
 			modified = true;
 		}
-		ImGui::PopFont();
 		ImGui::PopStyleColor( 3 );
 
 		ImGui::SameLine();
@@ -205,9 +194,6 @@ namespace Saturn::Auxiliary {
 
 		ImGuiIO& io = ImGui::GetIO();
 
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
-
 		ImGui::PushID( rLabel.c_str() );
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
@@ -241,9 +227,6 @@ namespace Saturn::Auxiliary {
 
 		ImGuiIO& io = ImGui::GetIO();
 
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
-
 		ImGui::PushID( rLabel.c_str() );
 		ImGui::Columns( 2 );
 		ImGui::SetColumnWidth( 0, columnWidth );
@@ -276,9 +259,6 @@ namespace Saturn::Auxiliary {
 
 		ImGuiIO& io = ImGui::GetIO();
 
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
-
 		ImGui::PushID( rLabel.c_str() );
 
 		ImGui::Columns( 2 );
@@ -309,9 +289,6 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
-
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( rLabel.c_str() );
 
@@ -354,9 +331,6 @@ namespace Saturn::Auxiliary {
 		bool modified = false;
 
 		ImGuiIO& io = ImGui::GetIO();
-
-		// This is not the bold font this is normal one, I just like it like that.
-		auto boldFont = io.Fonts->Fonts[ 0 ];
 
 		ImGui::PushID( rrLabel.c_str() );
 
@@ -519,27 +493,10 @@ namespace Saturn::Auxiliary {
 		float rounding = ImMin( g.Style.FrameRounding, grid_step * 0.5f );
 
 		// Draw the rect
-
 		ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 
 		ImVec4 ColorNoAlpha = ImVec4( color.x, color.y, color.z, 1.0f );
 		pDrawList->AddRectFilled( BoundingBox.Min, BoundingBox.Max, ImGui::GetColorU32( ColorNoAlpha ), rounding );
-	}
-
-	void TextEllipsis( const ImVec2& rStart, const ImVec2& rEnd, const char* fmt, ... )
-	{
-		va_list args;
-		va_start( args, fmt );
-		TextEllipsisV( fmt, rStart, rEnd, args );
-		va_end( args );
-	}
-
-	void TextEllipsisV( const char* fmt, const ImVec2& rStart, const ImVec2& rEnd, va_list args )
-	{
-		auto* pDrawList = ImGui::GetWindowDrawList();
-
-		const ImVec2 size( 0.0f, 0.0f );
-		ImGui::RenderTextEllipsis( pDrawList, rStart, rEnd, 0.0f, 0.0f, fmt, 0, &size );
 	}
 
 	bool DrawAssetFinder( AssetType type, bool* rOpen, AssetID& rOut )

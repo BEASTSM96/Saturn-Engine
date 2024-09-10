@@ -217,14 +217,6 @@ namespace Saturn {
 				RawSerialisation::WriteObject( rbc.LockFlags, rStream );
 			} );
 
-		// Physics material
-		WriteComponent<PhysicsMaterialComponent>( rEntity, rStream, [&]()
-			{
-				auto& pmc = rEntity->GetComponent< PhysicsMaterialComponent >();
-
-				RawSerialisation::WriteObject( pmc.AssetID, rStream );
-			} );
-
 		// Camera Component
 		WriteComponent<CameraComponent>( rEntity, rStream, [&]()
 			{
@@ -427,14 +419,6 @@ namespace Saturn {
 				RawSerialisation::ReadObject( rbc.UseCCD, rStream );
 				RawSerialisation::ReadObject( rbc.Mass, rStream );
 				RawSerialisation::ReadObject( rbc.LockFlags, rStream );
-			} );
-		
-		// Physics material
-		ReadComponent<PhysicsMaterialComponent>( rEntity, rStream, [&]()
-			{
-				auto& pmc = rEntity->GetComponent< PhysicsMaterialComponent >();
-
-				RawSerialisation::ReadObject( pmc.AssetID, rStream );
 			} );
 		
 		// Camera Component

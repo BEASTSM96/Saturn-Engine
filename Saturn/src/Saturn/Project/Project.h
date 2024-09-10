@@ -100,6 +100,9 @@ namespace Saturn {
 		// Absolute Temp dir
 		std::filesystem::path GetTempDir();
 
+		// Absolute source dir
+		std::filesystem::path GetSourceDir();
+
 		// Absolute bin dir
 		std::filesystem::path GetBinDir();
 		static std::filesystem::path GetActiveBinDir() { return s_ActiveProject->GetBinDir(); }
@@ -140,6 +143,14 @@ namespace Saturn {
 
 		void UpgradeAssets();
 
+		//////////////////////////////////////////////////////////////////////////
+		// Defaults
+		const UUID GetDefaultMaterialAsset() const { return m_DefaultMaterialAsset; }
+		void SetDefaultMaterialAsset( UUID newID ) { m_DefaultMaterialAsset = newID; }
+
+		const UUID GetDefaultPhysicsMaterialAsset() const { return m_DefaultPhysicsMaterialAsset; }
+		void SetDefaultPhysicsMaterialAsset( UUID newID ) { m_DefaultPhysicsMaterialAsset = newID; }
+
 	public:
 		//////////////////////////////////////////////////////////////////////////
 		// Premake, Building & Preparation for Distribution (Used in Editor)
@@ -164,6 +175,8 @@ namespace Saturn {
 		ProjectConfig m_Config;
 		std::vector<ActionBinding> m_ActionBindings;
 		std::vector<Ref<SoundGroup>> m_SoundGroups;
+		UUID m_DefaultMaterialAsset = 0;
+		UUID m_DefaultPhysicsMaterialAsset = 0;
 
 		// Absolute root path
 		std::filesystem::path m_RootPath;

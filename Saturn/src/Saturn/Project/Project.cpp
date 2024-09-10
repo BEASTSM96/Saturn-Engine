@@ -217,6 +217,11 @@ namespace Saturn {
 		return m_RootPath / "Temp";
 	}
 
+	std::filesystem::path Project::GetSourceDir()
+	{
+		return m_RootPath / "Source" / m_Config.Name;
+	}
+
 	std::filesystem::path Project::GetBinDir()
 	{
 		auto rootDir = GetRootDir();
@@ -288,12 +293,12 @@ namespace Saturn {
 
 	bool Project::HasPremakeFile()
 	{
-		return std::filesystem::exists( GetAssetPath().parent_path() / "premake5.lua" );
+		return std::filesystem::exists( m_RootPath / "premake5.lua" );
 	}
 
 	void Project::CreatePremakeFile()
 	{
-		auto PremakePath = GetAssetPath().parent_path() / "premake5.lua";
+		auto PremakePath = m_RootPath / "premake5.lua";
 
 		if( std::filesystem::exists( PremakePath ) )
 			std::filesystem::remove( PremakePath );
