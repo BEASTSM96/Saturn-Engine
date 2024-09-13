@@ -271,6 +271,16 @@ namespace Saturn {
 					m_SelectionChangedCallback( entity );
 			}
 
+			if( ImGui::BeginItemTooltip() )
+			{
+				ImGui::BeginHorizontal( (void*)entity.Get() );
+				ImGui::Text( "%s -- %s", rTag.c_str(), isPrefab ? "Prefab or Class Instance" : "Spawned");
+				ImGui::Spring();
+				ImGui::EndHorizontal();
+
+				ImGui::EndTooltip();
+			}
+
 			if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) ) 
 			{
 				ImGui::Text( rTag.c_str() );
@@ -500,10 +510,10 @@ namespace Saturn {
 		{
 			Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
 
-			bool changed = false;
-
-			if( skl.DynamicSky )
+			if( Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky ) || skl.DynamicSky )
 			{
+				bool changed = false;
+
 				changed = Auxiliary::DrawFloatControl( "Turbidity", skl.Turbidity );
 				changed |= Auxiliary::DrawFloatControl( "Azimuth", skl.Azimuth );
 				changed |= Auxiliary::DrawFloatControl( "Inclination", skl.Inclination );

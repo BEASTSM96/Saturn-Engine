@@ -69,6 +69,7 @@
 #include <Saturn/Asset/Prefab.h>
 
 #include <Saturn/GameFramework/Core/GameModule.h>
+#include <Saturn/GameFramework/Core/ClassMetadataHandler.h>
 
 #include <Saturn/Core/Renderer/RenderThread.h>
 #include <Saturn/Core/VirtualFS.h>
@@ -95,27 +96,11 @@ namespace Saturn {
 	{
 		Scene::SetActiveScene( m_EditorScene.Get() );
 
-		// Create Panel Manager.
-		m_PanelManager = Ref<PanelManager>::Create();
-		
-		m_PanelManager->AddPanel( Ref<SceneHierarchyPanel>::Create() );
-		m_PanelManager->AddPanel( Ref<ContentBrowserPanel>::Create() );
-
-		m_TitleBar = Ref<TitleBar>::Create();
-
-		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
-		hierarchyPanel->SetContext( m_EditorScene );
-		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( SelectionChanged ) );
-		hierarchyPanel->OpenWindow();
-
 		m_EditorCamera.SetActive( true );
 
 		// Init Physics
 		PhysicsFoundation* pPhysicsFoundation = new PhysicsFoundation();
 		pPhysicsFoundation->Init();
-
-		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
-		contentBrowserPanel->OpenWindow();
 
 		auto& rUserSettings = EngineSettings::Get();
 
@@ -130,15 +115,7 @@ namespace Saturn {
 
 		Project::GetActiveProject()->CheckMissingAssetRefs();
 
-		// Setup content browser panel at project dir.
-		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
-
 		m_GameModule = new GameModule();
-
-		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
-
-		std::string title = std::format( "{0} - Saturn", Project::GetActiveConfig().Name );
-		Application::Get().GetWindow()->ChangeTitle( title );
 	}
 
 	void EditorLayer::OnAttach()
@@ -177,8 +154,34 @@ namespace Saturn {
 		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Bin.png", AddressingMode::Repeat, true ) );
 		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Exclamation_Small.png", AddressingMode::Repeat, true ) );
 		EditorIcons::AddIcon( Ref<Texture2D>::Create( "content/textures/editor/Information_Small.png", AddressingMode::Repeat, true ) );
+		
+		// Create Panel Manager.
+		m_PanelManager = Ref<PanelManager>::Create();
+
+		m_PanelManager->AddPanel( Ref<SceneHierarchyPanel>::Create() );
+		m_PanelManager->AddPanel( Ref<ContentBrowserPanel>::Create() );
+
+		m_TitleBar = Ref<TitleBar>::Create();
+
+		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
+		hierarchyPanel->SetContext( m_EditorScene );
+		hierarchyPanel->SetSelectionChangedCallback( SAT_BIND_EVENT_FN( SelectionChanged ) );
+		hierarchyPanel->OpenWindow();
+
+		Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+		contentBrowserPanel->OpenWindow();
+
+		// Setup content browser panel at project dir.
+		auto& rUserSettings = EngineSettings::Get();
+		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		m_TitleBar->AddMenuBarFunction( SAT_BIND_EVENT_FN( DrawTitlebarOptions ) );
+
+		// Now open the startup scene
+		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
+
+		std::string title = std::format( "{0} - Saturn", Project::GetActiveConfig().Name );
+		Application::Get().GetWindow()->ChangeTitle( title );
 	}
 
 	void EditorLayer::OnDetach()
@@ -314,6 +317,7 @@ namespace Saturn {
 		if( m_MessageBoxes.size() )     HandleMessageBoxes();
 		if( m_ShowSceneRendererWindow ) DrawSceneRendererWindow();
 		if( m_ShowRendererWindow )		DrawRendererWindow();
+		if( m_ShowMetadataDebug )       DrawMetadataDebug();
 
 		AssetViewer::Draw();
 
@@ -573,11 +577,10 @@ namespace Saturn {
 		ImGuiIO& rIO = ImGui::GetIO();
 
 		auto& userSettings = EngineSettings::Get();
-
 		Ref<Project> ActiveProject = Project::GetActiveProject();
 
-		auto& startupProject = userSettings.StartupProject;
-		auto& startupScene = ActiveProject->GetConfig().StartupSceneID;
+		auto& rConfig = ActiveProject->GetConfig();
+		auto& startupScene = rConfig.StartupSceneID;
 
 		Ref<Asset> asset = AssetManager::Get().FindAsset( startupScene );
 
@@ -1296,10 +1299,12 @@ namespace Saturn {
 						{
 							Application::Get().GetWindow()->FlashAttention();
 
+							auto resultStr = AssetBundleResultToString( result );
+
 							MessageBoxInfo msgBox
 							{
 								.Title = "Error",
-								.Text = std::format( "Asset bundle failed to build error was: {0}", ( int ) result ),
+								.Text = std::format( "Asset bundle failed to build error was: {0}", resultStr ),
 								.Buttons = MessageBoxButtons_Ok
 							};
 
@@ -1311,7 +1316,8 @@ namespace Saturn {
 							{
 								.Title = "Asset bundle successfully built",
 								.Text = "Asset Bundle successfully built. You may now compile the game in the \"Dist\" configuration.\nYou can do this in your IDE. Or go to Project->Distribute project in the title bar.",
-								.Buttons = MessageBoxButtons_Ok
+								.Buttons = MessageBoxButtons_Ok,
+								.Type = MessageBoxType::Information
 							};
 
 							PushMessageBox( msgBox );
@@ -1353,16 +1359,7 @@ namespace Saturn {
 
 						if( auto result = AssetBundle::BundleAssets( m_BlockingOperation ); result != AssetBundleResult::Success )
 						{
-							Application::Get().GetWindow()->FlashAttention();
-
-							MessageBoxInfo msgBox
-							{
-								.Title = "Asset bundle failed to build",
-								.Text = std::format( "Asset bundle failed to build error was: {0}", ( int ) result ),
-								.Buttons = MessageBoxButtons_Ok
-							};
-
-							PushMessageBox( msgBox );
+							SAT_CORE_ASSERT( false );
 						}
 					} );
 			}
@@ -1412,6 +1409,7 @@ namespace Saturn {
 			ImGui::SeparatorText( "Asset Registry" );
 			if( ImGui::MenuItem( "Asset Registry Debug", "" ) )       m_OpenAssetRegistryDebug ^= 1;
 			if( ImGui::MenuItem( "Loaded Assets Debug", "" ) )        m_OpenLoadedAssetDebug   ^= 1;
+			if( ImGui::MenuItem( "Metadata Debug", "" ) )             m_ShowMetadataDebug      ^= 1;
 
 			ImGui::SeparatorText( "Demo Window" );
 			if( ImGui::MenuItem( "Show demo window", "" ) )           m_ShowImGuiDemoWindow    ^= 1;
@@ -1524,6 +1522,29 @@ namespace Saturn {
 		ImGui::End();
 	}
 
+	void EditorLayer::DrawMetadataDebug()
+	{
+		if( ImGui::Begin( "Class Metadata Debug", &m_ShowMetadataDebug ) )
+		{
+			ClassMetadataHandler::Get().Each( 
+				[&]( const auto& rMetadata ) 
+				{
+					if( Auxiliary::TreeNode( rMetadata.Name.c_str(), false ) )
+					{
+						ImGui::Text( "Parent Class: %s", rMetadata.ParentClassName.c_str() );
+						ImGui::Text( "Generated Source path: %s", rMetadata.GeneratedSourcePath.string().c_str() );
+						ImGui::Text( "Source path: %s", rMetadata.SourcePath.string().c_str() );
+						ImGui::Text( "Header path: %s", rMetadata.HeaderPath.string().c_str() );
+						ImGui::Text( "Generated at: %s", rMetadata.Date.c_str() );
+
+						Auxiliary::EndTreeNode();
+					}
+				} );
+		}
+
+		ImGui::End();
+	}
+
 	void EditorLayer::DrawViewport()
 	{
 		// Viewport Image & Drag and drop handling
@@ -1578,8 +1599,6 @@ namespace Saturn {
 				const wchar_t* path = ( const wchar_t* ) payload->Data;
 
 				std::filesystem::path p = path;
-
-				// We have now that path to the *.stmesh but we need to path to the fbx/gltf.
 
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 				Ref<StaticMesh> meshAsset = AssetManager::Get().GetAssetAs<StaticMesh>( asset->GetAssetID() );
@@ -1699,7 +1718,7 @@ namespace Saturn {
 
 		ImGui::SetNextWindowPos( ImVec2( minBound.x + 5.0f, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
-		ImGui::Begin( "##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
+		ImGui::Begin( "ViewportGizmoCrtl##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
 
 		ImGui::BeginVertical( "##v_gizmoV", { windowWidth, ImGui::GetContentRegionAvail().y } );
 		ImGui::BeginHorizontal( "##v_gizmoH", { windowWidth, ImGui::GetContentRegionAvail().y } );
@@ -1740,7 +1759,7 @@ namespace Saturn {
 		ImGui::SetNextWindowPos( ImVec2( runtimeCenterX, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
 
-		ImGui::Begin( "##viewport_center_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
+		ImGui::Begin( "ViewportCenterRt##viewport_center_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
 
 		ImGui::BeginVertical( "##centerRTv", { windowWidth, ImGui::GetContentRegionAvail().y } );
 		ImGui::BeginHorizontal( "##centerRTh", { windowWidth, ImGui::GetContentRegionAvail().y } );
@@ -1780,7 +1799,7 @@ namespace Saturn {
 		ImGui::SetNextWindowPos( ImVec2( runtimeRightX, minBound.y + 5.0f ) );
 		ImGui::SetNextWindowSize( ImVec2( windowWidth, windowHeight ) );
 
-		ImGui::Begin( "##viewport_right_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
+		ImGui::Begin( "ViewportRightRT##viewport_right_rt", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings );
 
 		ImGui::BeginVertical( "##rightRTv", { windowWidth, ImGui::GetContentRegionAvail().y } );
 		ImGui::BeginHorizontal( "##rightRTh", { windowWidth, ImGui::GetContentRegionAvail().y } );
@@ -1876,6 +1895,8 @@ namespace Saturn {
 
 			if( ( rInfo.Buttons & ( uint32_t ) MessageBoxButtons_Cancel ) != 0 )
 			{
+				ImGui::Spring();
+
 				if( ImGui::Button( "Cancel" ) )
 				{
 					ImGui::CloseCurrentPopup();
@@ -1885,6 +1906,8 @@ namespace Saturn {
 			
 			if( ( rInfo.Buttons & ( uint32_t ) MessageBoxButtons_Exit ) != 0 )
 			{
+				ImGui::Spring();
+
 				if( ImGui::Button( "Exit" ) )
 				{
 					ImGui::CloseCurrentPopup();

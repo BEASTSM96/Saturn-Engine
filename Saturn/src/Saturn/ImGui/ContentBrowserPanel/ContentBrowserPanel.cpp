@@ -508,10 +508,10 @@ namespace Saturn {
 				Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( entry );
 				item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
-				if( std::find( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ) != m_ValidSearchFiles.end() )
+				if( auto Itr = std::find( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ); Itr != m_ValidSearchFiles.end() )
 				{
 					if( !std::filesystem::exists( entry ) )
-						m_ValidSearchFiles.erase( std::remove( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ), m_ValidSearchFiles.end() );
+						m_ValidSearchFiles.erase( Itr, m_ValidSearchFiles.end() );
 
 					continue;
 				}
@@ -1207,10 +1207,10 @@ namespace Saturn {
 			// Item will never exist if we have cleared the list.
 			if( !clear )
 			{
-				if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
+				if( auto Itr = std::find( m_Files.begin(), m_Files.end(), item ); Itr != m_Files.end() )
 				{
 					if( !std::filesystem::exists( rEntry ) )
-						m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
+						m_Files.erase( Itr, m_Files.end() );
 
 					continue;
 				}
@@ -1238,20 +1238,21 @@ namespace Saturn {
 			// Item will never exist if we have cleared the list.
 			if( !clear )
 			{
-				if( std::find( m_Files.begin(), m_Files.end(), item ) != m_Files.end() )
+				if( auto Itr = std::find( m_Files.begin(), m_Files.end(), item ); Itr != m_Files.end() )
 				{
 					if( !std::filesystem::exists( rEntry ) )
-						m_Files.erase( std::remove( m_Files.begin(), m_Files.end(), item ), m_Files.end() );
+						m_Files.erase( Itr, m_Files.end() );
 
 					continue;
 				}
 			}
 
-			if( auto path = rEntry.path(); path.extension() != ".h" || path.extension() != ".cpp" )
-				continue;
-
-			m_Files.push_back( item );
-			m_FilesNeedSorting = true;
+			auto& path = rEntry.path();
+			if( path.extension() == ".cpp" || path.extension() == ".h" )
+			{
+				m_Files.push_back( item );
+				m_FilesNeedSorting = true;
+			}
 		}
 	}
 

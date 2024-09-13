@@ -62,14 +62,14 @@ namespace Saturn {
 		glm::vec3  Position ={ 0.0f , 0.0f, 0.0f };
 		glm::vec3  Scale	={ 1.0f , 1.0f, 1.0f };
 
-		glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
-		glm::vec3 Right ={ 1.0f, 0.0f, 0.0f };
-		glm::vec3 Forward ={ 0.0f, 0.0f, -1.0f };
+		static constexpr glm::vec3 Up ={ 0.0f, 1.0f, 0.0f };
+		static constexpr glm::vec3 Right ={ 1.0f, 0.0f, 0.0f };
+		static constexpr glm::vec3 Forward ={ 0.0f, 0.0f, -1.0f };
 
 		TransformComponent( void ) = default;
 		TransformComponent( const TransformComponent& ) = default;
-		TransformComponent( const glm::vec3& Position )
-			: Position( Position )
+		TransformComponent( const glm::vec3& rPosition )
+			: Position( rPosition )
 		{
 		}
 
@@ -292,7 +292,7 @@ namespace Saturn {
 	struct AudioListenerComponent
 	{
 		bool Primary = false;
-		glm::vec3 Direction{};
+		glm::vec3 Direction = TransformComponent::Forward;
 
 		// Radians not degrees
 		float ConeInnerAngle = 0.0f;

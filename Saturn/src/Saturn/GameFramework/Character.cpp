@@ -46,6 +46,7 @@ namespace Saturn {
 		AddComponent<StaticMeshComponent>();
 		AddComponent<RigidbodyComponent>().LockFlags = RigidbodyLockFlags::RotationX | RigidbodyLockFlags::RotationY | RigidbodyLockFlags::RotationZ;
 		AddComponent<CapsuleColliderComponent>();
+		AddComponent<AudioListenerComponent>();
 	}
 
 	Character::~Character()
@@ -118,7 +119,7 @@ namespace Saturn {
 
 		TransformComponent& tc = GetComponent<TransformComponent>();
 
-		auto& up = tc.Up;
+		auto& up = TransformComponent::Up;
 
 		tc.SetRotation( tc.GetRotationEuler() + glm::vec3( up * m_MouseUpMovement * 0.05f ) );
 
@@ -138,12 +139,9 @@ namespace Saturn {
 			m_RigidBody->ApplyForce( normalMove, ForceMode::Force );
 		}
 
-		if( HasComponent<AudioListenerComponent>() )
+		if( GetComponent<AudioListenerComponent>().Primary )
 		{
-			if( auto& alc = GetComponent<AudioListenerComponent>(); alc.Primary )
-			{
-				AudioSystem::Get().SetPrimaryListenerDirection( forward );
-			}
+			AudioSystem::Get().SetPrimaryListenerDirection( forward );
 		}
 	}
 
@@ -159,7 +157,7 @@ namespace Saturn {
 
 	glm::vec3 Character::CalculateRight()
 	{
-		auto& r = GetComponent<TransformComponent>().Right;
+		auto& r = TransformComponent::Right;
 
 		TransformComponent result = m_Scene->GetWorldSpaceTransform( m_CameraEntity );
 
@@ -168,7 +166,7 @@ namespace Saturn {
 
 	glm::vec3 Character::CalculateForward()
 	{
-		auto& f = GetComponent<TransformComponent>().Forward;
+		auto& f = TransformComponent::Forward;
 
 		TransformComponent result = m_Scene->GetWorldSpaceTransform( m_CameraEntity );
 
