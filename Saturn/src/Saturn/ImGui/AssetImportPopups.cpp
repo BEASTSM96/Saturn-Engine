@@ -221,7 +221,9 @@ namespace Saturn::Auxiliary {
 				std::string fullTime = std::format( "{0}", std::filesystem::last_write_time( rDefaultPath ) );
 				fullTime = fullTime.substr( 0, fullTime.find_first_of( " " ) );
 
+#if !defined(SAT_DIST)
 				sound->LastWriteTime = fullTime;
+#endif
 
 				// Save the asset
 				SoundSpecificationAssetSerialiser s2d;

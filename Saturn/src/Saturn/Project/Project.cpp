@@ -540,7 +540,7 @@ namespace Saturn {
 		std::wstring wArgs = Auxiliary::ConvertString( Args );
 
 		// Start the process
-		Process buildTool( wArgs, WorkingDir, ProcessCreateFlags::RedirectedStreams );
+		Process buildTool( wArgs, WorkingDir, ProcessCreateFlags::Normal );
 		int exitCode = buildTool.ResultOfProcess();
 
 		return exitCode == 0;
@@ -567,7 +567,7 @@ namespace Saturn {
 				break;
 
 			case Saturn::ConfigKind::Dist:
-				SaturnBinDir /= "Dist-windows-x86_64";
+				SaturnBinDir /= "Release-windows-x86_64"; // Use editor release dlls -- same as release ones
 				binDir /= "Dist-windows-x86_64";
 				break;
 		}

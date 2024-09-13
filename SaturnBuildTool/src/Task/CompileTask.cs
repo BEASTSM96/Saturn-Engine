@@ -144,7 +144,6 @@ namespace SaturnBuildTool
             // Enable this for Debugging
             Console.WriteLine( "Command Line: {0}", processStart.Arguments );
             
-            clProcess.EnableRaisingEvents = true;
             clProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
                 if (e.Data != null)

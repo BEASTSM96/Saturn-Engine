@@ -94,8 +94,6 @@ namespace Saturn {
 		m_RuntimeScene->OnRuntimeStart();
 
 		Application::Get().GetWindow()->Show();
-
-		Input::Get().SetCanSetCursorMode( true );
 	}
 
 	RuntimeLayer::~RuntimeLayer()
