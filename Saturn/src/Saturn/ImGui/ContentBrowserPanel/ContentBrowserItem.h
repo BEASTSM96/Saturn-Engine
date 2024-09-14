@@ -54,10 +54,17 @@ namespace Saturn {
 
 	class Asset;
 
+	enum class ContentBrowserItemType
+	{
+		Asset,
+		Directory,
+		SourceItem
+	};
+
 	class ContentBrowserItem : public RefTarget
 	{
 	public:
-		ContentBrowserItem( const std::filesystem::directory_entry& rEntry );
+		ContentBrowserItem( const std::filesystem::directory_entry& rEntry, ContentBrowserItemType type );
 		~ContentBrowserItem();
 
 		void Draw( ImVec2 ThumbnailSize, float Padding );
@@ -113,5 +120,6 @@ namespace Saturn {
 		bool m_StartingRename = false;
 
 		Ref<Asset> m_Asset = nullptr;
+		ContentBrowserItemType m_Type = ContentBrowserItemType::Asset;
 	};
 }

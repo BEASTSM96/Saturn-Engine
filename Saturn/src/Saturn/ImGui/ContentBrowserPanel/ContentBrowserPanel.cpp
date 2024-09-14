@@ -225,8 +225,48 @@ namespace Saturn {
 		}
 	}
 
+	void ContentBrowserPanel::DrawBaseContextMenu() 
+	{
+		// Theses actions are only going to be used when one item is selected.
+		// SELECTED ITEMS ACTIONS (FOR FOLDERS AND ASSETS)
+		if( m_SelectedItems.size() )
+		{
+			// Common Actions
+			if( ImGui::MenuItem( "Rename" ) )
+			{
+				m_SelectedItems[ 0 ]->Rename();
+			}
+
+			// Folder Actions
+			if( m_SelectedItems[ 0 ]->IsDirectory() )
+			{
+				if( ImGui::MenuItem( "Show In Explorer" ) )
+				{
+					std::wstring CommandLine = L"";
+					std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
+					CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
+
+					DeatchedProcess dp( CommandLine );
+				}
+			}
+			else
+			{
+				if( ImGui::MenuItem( "Delete" ) )
+				{
+					for( auto& rItem : m_SelectedItems )
+					{
+						rItem->Delete();
+					}
+				}
+			}
+		}
+		else
+			AssetsPopupContextMenu();
+	}
+
 	void ContentBrowserPanel::AssetsPopupContextMenu()
 	{
+		// NON-SELECTED ITEMS ACTIONS (WHEN RIGHT CLICKING ON PANEL, ONLY WHEN VIEWING ASSETS)
 		if( ImGui::BeginMenu( "Import" ) )
 		{
 			if( ImGui::MenuItem( "Starter Assets" ) )
@@ -505,7 +545,7 @@ namespace Saturn {
 
 			if( m_TextFilter.PassFilter( rPath.filename().string().c_str() ) )
 			{
-				Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( entry );
+				Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( entry, ContentBrowserItemType::Asset );
 				item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
 				if( auto Itr = std::find( m_ValidSearchFiles.begin(), m_ValidSearchFiles.end(), item ); Itr != m_ValidSearchFiles.end() )
@@ -636,50 +676,18 @@ namespace Saturn {
 
 			ImGui::PopStyleColor( 2 );
 
+			// CONTEXT MENU (RIGHT CLICK MENU)
 			if( ImGui::BeginPopupContextWindow( "CB_ItemAction", ImGuiPopupFlags_MouseButtonRight ) )
 			{
-				// Theses actions are only going to be used when one item is selected.
-				if( m_SelectedItems.size() )
+				switch( m_ViewMode )
 				{
-					// Common Actions
-					if( ImGui::MenuItem( "Rename" ) )
-					{
-						m_SelectedItems[ 0 ]->Rename();
-					}
+					case CBViewMode::Assets:
+						DrawBaseContextMenu();
+						break;
 
-					// Folder Actions
-					if( m_SelectedItems[ 0 ]->IsDirectory() )
-					{
-						if( ImGui::MenuItem( "Show In Explorer" ) )
-						{
-							std::wstring CommandLine = L"";
-							std::filesystem::path AssetPath = m_SelectedItems[ 0 ]->Path();
-							CommandLine = std::format( L"explorer.exe \"{0}\"", AssetPath.wstring() );
-
-							DeatchedProcess dp( CommandLine );
-						}
-					}
-					else
-					{
-						if( ImGui::MenuItem( "Delete" ) )
-						{
-							for( auto& rItem : m_SelectedItems )
-							{
-								rItem->Delete();
-							}
-						}
-					}
-				}
-				else
-				{
-					if( m_ViewMode == CBViewMode::Assets )
-					{
-						AssetsPopupContextMenu();
-					}
-					else
-					{
+					case CBViewMode::Scripts:
 						ScriptsPopupContextMenu();
-					}
+						break;
 				}
 
 				ImGui::EndPopup();
@@ -1203,7 +1211,7 @@ namespace Saturn {
 	{
 		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
 		{
-			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
+			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry, ContentBrowserItemType::Asset );
 			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
 			// Item will never exist if we have cleared the list.
@@ -1232,30 +1240,18 @@ namespace Saturn {
 
 	void ContentBrowserPanel::GetSourceFiles( bool clear ) 
 	{
-		for( auto& rEntry : std::filesystem::directory_iterator( m_CurrentPath ) )
-		{
-			Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( rEntry );
-			item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
-
-			// Item will never exist if we have cleared the list.
-			if( !clear )
+		ClassMetadataHandler::Get().Each( 
+			[=]( const auto& rMetadata ) 
 			{
-				if( auto Itr = std::find( m_Files.begin(), m_Files.end(), item ); Itr != m_Files.end() )
+				if( rMetadata.ExternalData )
 				{
-					if( !std::filesystem::exists( rEntry ) )
-						m_Files.erase( Itr, m_Files.end() );
+					Ref<ContentBrowserItem> item = Ref<ContentBrowserItem>::Create( std::filesystem::directory_entry( rMetadata.HeaderPath ), ContentBrowserItemType::SourceItem );
+					item->SetSelectedFn( SAT_BIND_EVENT_FN( ContentBrowserPanel::OnItemSelected ) );
 
-					continue;
+					m_Files.push_back( item );
+					m_FilesNeedSorting = true;
 				}
-			}
-
-			auto& path = rEntry.path();
-			if( path.extension() == ".cpp" || path.extension() == ".h" )
-			{
-				m_Files.push_back( item );
-				m_FilesNeedSorting = true;
-			}
-		}
+			} );
 	}
 
 	void ContentBrowserPanel::UpdateFiles( bool clear /*= false */ )

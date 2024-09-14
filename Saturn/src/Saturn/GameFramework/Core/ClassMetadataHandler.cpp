@@ -35,13 +35,13 @@ namespace Saturn {
 	{
 		// Push some default classes.
 		// TODO: This should be done by the Build Tool however we are not using it for the Engine.
-		SClassMetadata SClassData{ .Name = "SClass", .ParentClassName = "" };
+		SClassMetadata SClassData{ .Name = "SClass", .ParentClassName = "", .ExternalData = false };
 		m_Metadata.push_back( SClassData );
 
-		SClassData = { .Name = "Entity", .ParentClassName = "SClass" };
+		SClassData = { .Name = "Entity", .ParentClassName = "SClass", .ExternalData = false };
 		m_Metadata.push_back( SClassData );
 
-		SClassData = { .Name = "Character", .ParentClassName = "Entity" };
+		SClassData = { .Name = "Character", .ParentClassName = "Entity", .ExternalData = false };
 		m_Metadata.push_back( SClassData );
 
 		ConstructTree();

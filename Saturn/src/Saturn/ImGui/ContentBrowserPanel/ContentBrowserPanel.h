@@ -79,6 +79,7 @@ namespace Saturn {
 
 		void DrawRootFolder( CBViewMode type, bool open = false );
 
+		void DrawBaseContextMenu();
 		void AssetsPopupContextMenu();
 		void ScriptsPopupContextMenu();
 

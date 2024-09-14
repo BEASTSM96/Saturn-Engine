@@ -75,7 +75,7 @@ namespace Saturn {
 		VkDescriptorImageInfo& GetDescriptorInfo() { return m_DescriptorImageInfo; }
 
 		VkImage GetImage() { return m_Image; }
-		VkImageView GetImageView( size_t index = 0 ) { return m_ImageViewes[ index ]; }
+		VkImageView GetImageView( size_t index = 0 ) { return m_ImageViews[ index ]; }
 		VkSampler GetSampler() { return m_Sampler; }
 		VkDeviceMemory GetMemory() { return m_Memory; }
 
@@ -99,7 +99,7 @@ namespace Saturn {
 		ImageFormat m_Format;
 		ImageTiling m_Tiling;
 
-		std::vector<VkImageView> m_ImageViewes;
+		std::vector<VkImageView> m_ImageViews;
 
 		VkImage m_Image;
 		VkImageView m_ImageView;

@@ -53,19 +53,23 @@ namespace Saturn {
 
 	static char s_RenameBuffer[ 1024 ];
 
-	ContentBrowserItem::ContentBrowserItem( const std::filesystem::directory_entry& rEntry )
-		: m_Entry( rEntry )
+	ContentBrowserItem::ContentBrowserItem( const std::filesystem::directory_entry& rEntry, ContentBrowserItemType type )
+		: m_Entry( rEntry ), m_Type( type )
 	{
 		m_Path = rEntry.path();
 		m_Filename = m_Path.stem().string();
 
 		m_IsDirectory = rEntry.is_directory();
 
-		if( !m_IsDirectory )
+		if( m_IsDirectory )
+		{
+			m_Type = ContentBrowserItemType::Directory;
+		}
+		else if( m_Type == ContentBrowserItemType::Asset )
 		{
 			auto path = std::filesystem::relative( m_Path, Project::GetActiveProject()->GetRootDir() );
 			auto asset = AssetManager::Get().FindAsset( path );
-			
+
 			if( asset )
 			{
 				m_Asset = asset;
@@ -517,6 +521,9 @@ namespace Saturn {
 
 	void ContentBrowserItem::HandleDragDrop()
 	{
+		if( m_Type == ContentBrowserItemType::SourceItem )
+			return;
+
 		auto Icon = ContentBrowserThumbnailGenerator::GetDefault( m_IsDirectory ? CB_DIRECTORY_ICON : CB_FILE_ICON );
 
 		if( ImGui::BeginDragDropSource( ImGuiDragDropFlags_SourceAllowNullID ) )

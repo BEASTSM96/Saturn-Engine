@@ -444,17 +444,14 @@ namespace SaturnBuildTool.Tools
                 {
                     if ((cmd.CurrentFile.SClassInfo & SC.NoMetadata) != SC.NoMetadata)
                     {
-                        string metadata = string.Format("static void _ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                         metadata += "{\r\n";
                         metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
                         metadata += string.Format("\t__Metadata_{0}.GeneratedSourcePath = __FILE__;\r\n", cmd.CurrentFile.ClassName);
-                        //metadata += string.Format("\t__Metadata_{0}.SourcePath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, Path.ChangeExtension(HeaderPath, ".cpp"));
-                        //metadata += string.Format("\t__Metadata_{0}.SourcePath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, Path.ChangeExtension(HeaderPath, ".cpp"));
-                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"\";\r\n", cmd.CurrentFile.ClassName, HeaderPath);
-                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"\";\r\n", cmd.CurrentFile.ClassName, HeaderPath);
-                        metadata += string.Format("\t__Metadata_{0}.Date = __DATE__;\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, HeaderPath.Replace("\\", "\\\\"));
+                        metadata += string.Format("\t__Metadata_{0}.ExternalData = true;\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
                         metadata += "}\r\n";
 
@@ -462,7 +459,7 @@ namespace SaturnBuildTool.Tools
                     }
                     else 
                     {
-                        string metadata = string.Format("static void _ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
                         metadata += "{\r\n";
                         metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
                         metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
@@ -479,18 +476,15 @@ namespace SaturnBuildTool.Tools
                     Random random = new Random();
                     int randomNumber = random.Next();
                         
-                    string call = string.Format("struct _Z_{0}_RT_Editor\r\n", cmd.CurrentFile.ClassName);
+                    string call = string.Format("struct Ar{0}_RTEditor\r\n", cmd.CurrentFile.ClassName);
                     call += "{\r\n";
-                    call += string.Format("\t_Z_{0}_RT_Editor()\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\tAr{0}_RTEditor()\r\n", cmd.CurrentFile.ClassName);
                     call += "\t{\r\n";
-                    //call += string.Format("\t\t_RT_Z_Add{0}ToEditor();\r\n", CurrentFile.ClassName);
-                    call += string.Format("\t\t_ReflCreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
-                    //call += string.Format("\t\t_Zp_{0}_Reg_Props();\r\n", cmd.CurrentFile.ClassName);
-                    call += "\r\n";
+                    call += string.Format("\t\tReflCreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
                     call += "\t}\r\n";
                     call += "};\r\n";
                     call += "\r\n";
-                    call += string.Format("static _Z_{0}_RT_Editor _Z_RT_{0}_{1};", cmd.CurrentFile.ClassName, randomNumber);
+                    call += string.Format("static Ar{0}_RTEditor Ar{0}_Runtime_{1};", cmd.CurrentFile.ClassName, randomNumber);
 
                     cmd.GeneratedSource.AppendLine(call);
                     cmd.GeneratedSource.AppendLine("//^^^ Auto-Registration\r\n");

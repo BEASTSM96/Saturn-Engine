@@ -40,7 +40,7 @@ namespace Saturn {
 	{
 		m_MSAASamples = (VkSampleCountFlagBits)MSAASamples;
 
-		m_ImageViewes.resize( m_ArrayLevels );
+		m_ImageViews.resize( m_ArrayLevels );
 
 		Create();
 	}
@@ -54,8 +54,8 @@ namespace Saturn {
 
 		for( size_t i = 0; i < m_ArrayLevels; i++ )
 		{
-			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViewes[ i ], nullptr );
-			m_ImageViewes[ i ] = nullptr;
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViews[ i ], nullptr );
+			m_ImageViews[ i ] = nullptr;
 		}
 
 		m_Image = nullptr;
@@ -76,7 +76,7 @@ namespace Saturn {
 		vkFreeMemory( VulkanContext::Get().GetDevice(), m_Memory, nullptr );
 
 		for( size_t i = 0; i < m_ArrayLevels; i++ )
-			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViewes[ i ], nullptr );
+			vkDestroyImageView( VulkanContext::Get().GetDevice(), m_ImageViews[ i ], nullptr );
 
 		m_Width = Width;
 		m_Height = Height;
@@ -202,7 +202,7 @@ namespace Saturn {
 		m_DescriptorImageInfo.sampler = m_Sampler;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 
-		m_ImageViewes.resize( m_ArrayLevels );
+		m_ImageViews.resize( m_ArrayLevels );
 		for( size_t i = 0; i < m_ArrayLevels; i++ )
 		{
 			// Create image view.
@@ -224,8 +224,8 @@ namespace Saturn {
 			ImageViewCreateInfo.subresourceRange.baseArrayLayer = ( uint32_t ) i;
 			ImageViewCreateInfo.subresourceRange.layerCount = 1;
 
-			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViewes[ i ] ) );
-			SetDebugUtilsObjectName( std::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViewes[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
+			VK_CHECK( vkCreateImageView( VulkanContext::Get().GetDevice(), &ImageViewCreateInfo, nullptr, &m_ImageViews[ i ] ) );
+			SetDebugUtilsObjectName( std::format( "Image view layer {}", i ), ( uint64_t ) m_ImageViews[ i ], VK_OBJECT_TYPE_IMAGE_VIEW );
 		}
 	}
 

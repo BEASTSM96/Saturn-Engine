@@ -45,10 +45,10 @@ namespace Saturn {
 		std::string Name;
 		std::string ParentClassName;
 
-		std::string Date;
-		std::filesystem::path Path;
+		std::filesystem::path GeneratedSourcePath;
+		std::filesystem::path HeaderPath;
 
-		bool Handled = false;
+		bool ExternalData = false;
 	};
 
 	class SClass : public RefTarget

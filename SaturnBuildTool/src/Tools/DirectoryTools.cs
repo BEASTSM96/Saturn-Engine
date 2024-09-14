@@ -85,8 +85,7 @@ namespace SaturnBuildTool.Tools
 
                 foreach (string f in Directory.GetFiles(sDir))
                 {
-                   // if( !f.Contains(".Gen.") )
-                        strings.Add(f);
+                    strings.Add(f);
                 }
             }
             catch (System.Exception excpt)
