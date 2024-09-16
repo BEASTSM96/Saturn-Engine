@@ -1533,9 +1533,7 @@ namespace Saturn {
 					{
 						ImGui::Text( "Parent Class: %s", rMetadata.ParentClassName.c_str() );
 						ImGui::Text( "Generated Source path: %s", rMetadata.GeneratedSourcePath.string().c_str() );
-						ImGui::Text( "Source path: %s", rMetadata.SourcePath.string().c_str() );
 						ImGui::Text( "Header path: %s", rMetadata.HeaderPath.string().c_str() );
-						ImGui::Text( "Generated at: %s", rMetadata.Date.c_str() );
 
 						Auxiliary::EndTreeNode();
 					}
