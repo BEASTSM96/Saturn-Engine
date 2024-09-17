@@ -86,11 +86,11 @@ namespace Saturn {
 		float m_Radius = 0.0f;
 	};
 
-	class CapusleShape : public PhysicsShape
+	class CapsuleShape : public PhysicsShape
 	{
 	public:
-		CapusleShape( Ref<Entity> entity );
-		~CapusleShape();
+		CapsuleShape( Ref<Entity> entity );
+		~CapsuleShape();
 
 		void Create( physx::PxRigidActor& rActor ) override;
 

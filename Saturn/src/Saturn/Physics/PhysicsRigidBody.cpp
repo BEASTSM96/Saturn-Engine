@@ -128,7 +128,7 @@ namespace Saturn {
 
 			case Saturn::ShapeType::Capusle:
 			{
-				m_Shape = Ref<CapusleShape>::Create( m_Entity );
+				m_Shape = Ref<CapsuleShape>::Create( m_Entity );
 			} break;
 
 			case Saturn::ShapeType::Unknown:

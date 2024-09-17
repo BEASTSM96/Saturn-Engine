@@ -188,6 +188,7 @@ namespace Saturn {
 		glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
 		bool IsTrigger = false;
+		bool AutoAdjustExtent = false;
 
 		BoxColliderComponent() = default;
 		BoxColliderComponent( const glm::vec3& extents ) : Extents( extents ) { }

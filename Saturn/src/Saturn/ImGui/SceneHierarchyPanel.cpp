@@ -508,8 +508,6 @@ namespace Saturn {
 
 		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
 		{
-			Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky );
-
 			if( Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky ) || skl.DynamicSky )
 			{
 				bool changed = false;
@@ -522,36 +520,44 @@ namespace Saturn {
 					Application::Get().PrimarySceneRenderer().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
 			}
 		} );
-		
-		DrawComponent<BoxColliderComponent>( "Box Collider", entity, []( auto& bc )
+
+		DrawComponent<BoxColliderComponent>( "Box Collider", entity, [&]( auto& bc )
 		{
-			Auxiliary::DrawVec3Control( "Extent", bc.Extents );
-			Auxiliary::DrawVec3Control( "Offset", bc.Offset );
+			{
+				Auxiliary::ScopedItemFlag disabledFlag( ImGuiItemFlags_Disabled, bc.AutoAdjustExtent );
+				Auxiliary::ScopedStyleVar<float> styleVar( ImGuiStyleVar_Alpha, bc.AutoAdjustExtent ? 0.5f : 1.0f );
+
+				Auxiliary::DrawVec3Control( "Extent", bc.Extents );
+			}
 			
-			Auxiliary::DrawBoolControl( "IsTrigger", bc.IsTrigger );
+			Auxiliary::DrawVec3Control( "Offset", bc.Offset );
+			Auxiliary::DrawBoolControl( "Is Trigger", bc.IsTrigger );
+
+			if( Auxiliary::DrawBoolControl( "Auto Adjust Extent", bc.AutoAdjustExtent ) || bc.AutoAdjustExtent )
+			{
+				auto& transform = entity->GetComponent<TransformComponent>();
+				bc.Extents = transform.Scale;
+			}
 		} );
 
 		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
 		{
-			Auxiliary::DrawVec3Control( "Offset", sc.Offset );
 			Auxiliary::DrawFloatControl( "Radius", sc.Radius );
-
-			Auxiliary::DrawBoolControl( "IsTrigger", sc.IsTrigger );
+			Auxiliary::DrawVec3Control( "Offset", sc.Offset );
+			Auxiliary::DrawBoolControl( "Is Trigger", sc.IsTrigger );
 		} );
 
 		DrawComponent<CapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
 		{
-			Auxiliary::DrawVec3Control( "Offset", cc.Offset );
-
 			Auxiliary::DrawFloatControl( "Radius", cc.Radius );
 			Auxiliary::DrawFloatControl( "Height", cc.Height );
-
-			Auxiliary::DrawBoolControl( "IsTrigger", cc.IsTrigger );
+			Auxiliary::DrawVec3Control( "Offset", cc.Offset );
+			Auxiliary::DrawBoolControl( "Is Trigger", cc.IsTrigger );
 		} );
 
 		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, []( auto& mcc )
 		{
-			Auxiliary::DrawBoolControl( "IsTrigger", mcc.IsTrigger );
+			Auxiliary::DrawBoolControl( "Is Trigger", mcc.IsTrigger );
 		} );
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, [&]( auto& rb )

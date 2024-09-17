@@ -91,7 +91,10 @@ namespace Saturn {
 		const Ref<StaticMesh>& mesh = m_Entity->GetComponent<StaticMeshComponent>().Mesh;
 
 		glm::vec3 size = bcc.Extents;
-		glm::vec3 scale = transform.Scale;
+
+		// Very rare path, only happens if something else modifies the scale.
+		if( bcc.AutoAdjustExtent && size != transform.Scale )
+			size = transform.Scale;
 
 		glm::vec3 halfSize = size / 2.0f;
 
@@ -176,17 +179,17 @@ namespace Saturn {
 	//////////////////////////////////////////////////////////////////////////
 	// Capsule
 
-	CapusleShape::CapusleShape( Ref<Entity> entity )
+	CapsuleShape::CapsuleShape( Ref<Entity> entity )
 		: PhysicsShape( entity )
 	{
 		m_Type = ShapeType::Capusle;
 	}
 
-	CapusleShape::~CapusleShape()
+	CapsuleShape::~CapsuleShape()
 	{
 	}
 
-	void CapusleShape::Create( physx::PxRigidActor& rActor )
+	void CapsuleShape::Create( physx::PxRigidActor& rActor )
 	{
 		CapsuleColliderComponent& cap = m_Entity->GetComponent<CapsuleColliderComponent>();
 		TransformComponent& transform = m_Entity->GetComponent<TransformComponent>();
