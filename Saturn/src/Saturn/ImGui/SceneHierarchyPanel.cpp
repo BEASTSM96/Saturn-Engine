@@ -132,11 +132,11 @@ namespace Saturn {
 				if( ImGui::MenuItem( "Create Empty Entity" ) )
 				{
 					SetSelected( Ref<Entity>::Create() );
+					m_Context->MarkDirty();
 				}
 
-				auto components = m_Context->m_Registry.view<DirectionalLightComponent>();
-
-				if( components.empty() )
+				auto directionalLights = m_Context->m_Registry.view<DirectionalLightComponent>();
+				if( directionalLights.empty() )
 				{
 					if( ImGui::MenuItem( "Directional Light" ) )
 					{
@@ -147,11 +147,11 @@ namespace Saturn {
 						entity->GetComponent<TransformComponent>().SetRotation( glm::radians( glm::vec3( 80.0f, 10.0f, 0.0f ) ) );
 
 						SetSelected( entity );
+						m_Context->MarkDirty();
 					}
 				}
 
 				auto SkylightComponents = m_Context->m_Registry.view<SkylightComponent>();
-				
 				if( SkylightComponents.empty() )
 				{
 					if( ImGui::MenuItem( "Skylight" ) )
@@ -164,6 +164,7 @@ namespace Saturn {
 						Application::Get().PrimarySceneRenderer().SetDynamicSky( 2.0f, 0.0f, 0.0f );
 
 						SetSelected( entity );
+						m_Context->MarkDirty();
 					}
 				}
 
@@ -347,7 +348,7 @@ namespace Saturn {
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 		bool isPrefab = entity->HasComponent<PrefabComponent>() || entity->HasComponent<ScriptComponent>();
 
-		ImGui::Image( m_EditIcon->GetDescriptorSet(), ImVec2( 30, 30 ) );
+		ImGui::Image( m_EditIcon->GetDescriptorSet(), ImVec2( 30.0f, 30.0f ) );
 
 		ImGui::SameLine();
 
@@ -363,6 +364,8 @@ namespace Saturn {
 			if( ImGui::InputText( "##Tag", buffer, 256 ) )
 			{
 				tag = std::string( buffer );
+
+				m_Context->MarkDirty();
 			}
 			ImGui::PopItemWidth();
 		}
@@ -390,22 +393,31 @@ namespace Saturn {
 			}
 		}
 
-		DrawComponent<TransformComponent>( "Transform", entity, []( auto& tc )
+		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
+			bool modified = false;
+
 			auto& translation = tc.Position;
 			glm::vec3 rotation = glm::degrees( tc.GetRotationEuler() );
 			auto& scale = tc.Scale;
 
-			Auxiliary::DrawVec3Control( "Translation", tc.Position );
+			modified = Auxiliary::DrawVec3Control( "Translation", tc.Position );
 			
-			if( Auxiliary::DrawVec3Control( "Rotation", rotation ) )
+			if( Auxiliary::DrawVec3Control( "Rotation", rotation ) ) 
+			{
 				tc.SetRotation( glm::radians( rotation ) );
+				
+				modified |= true;
+			}
 
-			Auxiliary::DrawVec3Control( "Scale", tc.Scale, 1.0f );
+			modified |= Auxiliary::DrawVec3Control( "Scale", tc.Scale, 1.0f );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
 		DrawComponent<StaticMeshComponent>( "Static Mesh", entity, [&]( auto& mc )
 		{
+			bool modified = false;
 			bool open = false;
 			static uint32_t s_CurrentIndex = 0;
 
@@ -447,6 +459,8 @@ namespace Saturn {
 				{
 					mc.MaterialRegistry->SetMaterial( s_CurrentIndex, m_CurrentAssetID );
 				}
+
+				modified = true;
 			}
 			
 			if( mc.Mesh ) 
@@ -470,6 +484,7 @@ namespace Saturn {
 							if( ImGui::SmallButton( "x" ) )
 							{
 								mc.MaterialRegistry->ResetMaterial( i );
+								modified |= true;
 							}
 						}
 
@@ -482,31 +497,44 @@ namespace Saturn {
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<CameraComponent>( "Camera", entity, []( auto& cc )
+		DrawComponent<CameraComponent>( "Camera", entity, [&]( auto& cc )
 		{
-			Auxiliary::DrawBoolControl( "Main Camera", cc.MainCamera );
-			Auxiliary::DrawFloatControl( "Field of View", cc.Fov, 10.0f, 100.0f );
+			bool modified = false;
+
+			modified =  Auxiliary::DrawBoolControl( "Main Camera", cc.MainCamera );
+			modified |= Auxiliary::DrawFloatControl( "Field of View", cc.Fov, 10.0f, 100.0f );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<PointLightComponent>( "Point Light", entity, []( auto& plc )
+		DrawComponent<PointLightComponent>( "Point Light", entity, [&]( auto& plc )
 		{
-			Auxiliary::DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
+			bool modified = false;
 
-			Auxiliary::DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
-			Auxiliary::DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
-			Auxiliary::DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
+			modified =  Auxiliary::DrawColorVec3Control( "Light Color", plc.Radiance, 150.0f );
+			modified |= Auxiliary::DrawFloatControl( "Light Intensity", plc.Multiplier, 0.0f, 500.0f );
+			modified |= Auxiliary::DrawFloatControl( "Radius", plc.Radius, 0.0f, FLT_MAX );
+			modified |= Auxiliary::DrawFloatControl( "Falloff", plc.Falloff, 0.0f, 1.0f );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, []( auto& dlc )
+		DrawComponent<DirectionalLightComponent>( "Directional Light", entity, [&]( auto& dlc )
 		{
-			Auxiliary::DrawFloatControl( "Intensity", dlc.Intensity, 0.0f, 110.0f );
-			Auxiliary::DrawBoolControl( "Cast shadows", dlc.CastShadows );
-			Auxiliary::DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
+			bool modified = false;
+
+			modified =  Auxiliary::DrawFloatControl( "Intensity", dlc.Intensity, 0.0f, 110.0f );
+			modified |= Auxiliary::DrawBoolControl( "Cast shadows", dlc.CastShadows );
+			modified |= Auxiliary::DrawColorVec3Control( "Radiance", dlc.Radiance, 1.0f );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<SkylightComponent>( "Skylight", entity, []( auto& skl )
+		DrawComponent<SkylightComponent>( "Skylight", entity, [&]( auto& skl )
 		{
 			if( Auxiliary::DrawBoolControl( "Dynamic Sky", skl.DynamicSky ) || skl.DynamicSky )
 			{
@@ -516,57 +544,79 @@ namespace Saturn {
 				changed |= Auxiliary::DrawFloatControl( "Azimuth", skl.Azimuth );
 				changed |= Auxiliary::DrawFloatControl( "Inclination", skl.Inclination );
 
-				if( changed )
+				if( changed ) 
+				{
 					Application::Get().PrimarySceneRenderer().SetDynamicSky( skl.Turbidity, skl.Azimuth, skl.Inclination );
+
+					m_Context->MarkDirty();
+				}
 			}
 		} );
 
 		DrawComponent<BoxColliderComponent>( "Box Collider", entity, [&]( auto& bc )
 		{
+			bool modified = false;
+
 			{
 				Auxiliary::ScopedItemFlag disabledFlag( ImGuiItemFlags_Disabled, bc.AutoAdjustExtent );
 				Auxiliary::ScopedStyleVar<float> styleVar( ImGuiStyleVar_Alpha, bc.AutoAdjustExtent ? 0.5f : 1.0f );
 
-				Auxiliary::DrawVec3Control( "Extent", bc.Extents );
+				modified = Auxiliary::DrawVec3Control( "Extent", bc.Extents );
 			}
 			
-			Auxiliary::DrawVec3Control( "Offset", bc.Offset );
-			Auxiliary::DrawBoolControl( "Is Trigger", bc.IsTrigger );
+			modified |= Auxiliary::DrawVec3Control( "Offset", bc.Offset );
+			modified |= Auxiliary::DrawBoolControl( "Is Trigger", bc.IsTrigger );
 
 			if( Auxiliary::DrawBoolControl( "Auto Adjust Extent", bc.AutoAdjustExtent ) || bc.AutoAdjustExtent )
 			{
 				auto& transform = entity->GetComponent<TransformComponent>();
 				bc.Extents = transform.Scale;
+
+				modified |= true;
 			}
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, []( auto& sc )
+		DrawComponent<SphereColliderComponent>( "Sphere Collider", entity, [&]( auto& sc )
 		{
-			Auxiliary::DrawFloatControl( "Radius", sc.Radius );
-			Auxiliary::DrawVec3Control( "Offset", sc.Offset );
-			Auxiliary::DrawBoolControl( "Is Trigger", sc.IsTrigger );
+			bool modified = false;
+
+			modified =  Auxiliary::DrawFloatControl( "Radius", sc.Radius );
+			modified |= Auxiliary::DrawVec3Control( "Offset", sc.Offset );
+			modified |= Auxiliary::DrawBoolControl( "Is Trigger", sc.IsTrigger );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<CapsuleColliderComponent>( "Capsule Collider", entity, []( auto& cc )
+		DrawComponent<CapsuleColliderComponent>( "Capsule Collider", entity, [&]( auto& cc )
 		{
-			Auxiliary::DrawFloatControl( "Radius", cc.Radius );
-			Auxiliary::DrawFloatControl( "Height", cc.Height );
-			Auxiliary::DrawVec3Control( "Offset", cc.Offset );
-			Auxiliary::DrawBoolControl( "Is Trigger", cc.IsTrigger );
+			bool modified = false;
+
+			modified =  Auxiliary::DrawFloatControl( "Radius", cc.Radius );
+			modified |= Auxiliary::DrawFloatControl( "Height", cc.Height );
+			modified |= Auxiliary::DrawVec3Control( "Offset", cc.Offset );
+			modified |= Auxiliary::DrawBoolControl( "Is Trigger", cc.IsTrigger );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
+		/*
 		DrawComponent<MeshColliderComponent>( "Mesh Collider", entity, []( auto& mcc )
 		{
 			Auxiliary::DrawBoolControl( "Is Trigger", mcc.IsTrigger );
 		} );
+		*/
 
 		DrawComponent<RigidbodyComponent>( "Rigidbody", entity, [&]( auto& rb )
 		{
-			Auxiliary::DrawBoolControl( "Kinematic Body", rb.IsKinematic );
-			Auxiliary::DrawBoolControl( "Use CCD", rb.UseCCD );
+			bool modified = false;
 
-			Auxiliary::DrawFloatControl( "Mass", rb.Mass );
-			Auxiliary::DrawFloatControl( "Linear Drag", rb.LinearDrag );
+			modified = Auxiliary::DrawBoolControl( "Kinematic Body", rb.IsKinematic );
+			modified |= Auxiliary::DrawBoolControl( "Use CCD", rb.UseCCD );
+
+			modified |= Auxiliary::DrawFloatControl( "Mass", rb.Mass );
+			modified |= Auxiliary::DrawFloatControl( "Linear Drag", rb.LinearDrag );
 			
 			//////////////////////////////////////////////////////////////////////////
 
@@ -632,12 +682,14 @@ namespace Saturn {
 					if( ImGui::Button( "Reset", ImVec2( 24.0f, 24.0f ) ) )
 					{
 						rb.MaterialAssetID = 0;
+						modified = true;
 					}
 				}
 
 				if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &openAssetFinder, m_CurrentAssetID ) )
 				{
 					rb.MaterialAssetID = m_CurrentAssetID;
+					modified |= true;
 				}
 			}
 			ImGui::EndHorizontal();
@@ -670,6 +722,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::PositionX;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::PositionX;
+
+				modified |= true;
 			}
 
 			ImGui::PopItemWidth();
@@ -680,6 +734,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::PositionY;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::PositionY;
+
+				modified |= true;
 			}
 
 			ImGui::PopItemWidth();
@@ -690,6 +746,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::PositionZ;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::PositionZ;
+			
+				modified |= true;
 			}
 
 			ImGui::PopItemWidth();
@@ -728,6 +786,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::RotationX;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::RotationX;
+		
+				modified |= true;
 			}
 
 			ImGui::PopItemWidth();
@@ -738,6 +798,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::RotationY;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::RotationY;
+			
+				modified |= true;
 			}
 
 			ImGui::PopItemWidth();
@@ -748,6 +810,8 @@ namespace Saturn {
 					rb.LockFlags |= RigidbodyLockFlags::RotationZ;
 				else
 					rb.LockFlags &= ~RigidbodyLockFlags::RotationZ;
+			
+				modified |= true;
 			}
 
 			ImGui::PopStyleVar();
@@ -757,6 +821,8 @@ namespace Saturn {
 			ImGui::Columns( 1 );
 
 			ImGui::PopID();
+			
+			if( modified ) m_Context->MarkDirty();
 		} );
 
 		DrawComponent<BillboardComponent>( "Billboard", entity, [&](auto& bc) 
@@ -777,49 +843,51 @@ namespace Saturn {
 			if( Auxiliary::DrawAssetFinder( m_CurrentFinderType, &open, m_CurrentAssetID ) )
 			{
 				bc.AssetID = m_CurrentAssetID;
+				
+				m_Context->MarkDirty();
 			}
 		} );
 
 		DrawComponent<AudioPlayerComponent>( "Audio Player", entity, [&]( auto& ap )
 		{
-			bool open = false;
+			bool modified = false;
 
-			if( m_Context->RuntimeRunning ) 
 			{
-				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-			}
-			
-			if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
-			{
-				m_CurrentFinderType = AssetType::Sound;
-				open = true;
+				bool open = false;			
+				
+				// Push disabled flag if runtime running
+				Auxiliary::ScopedItemFlag disabledFlag( ImGuiItemFlags_Disabled, m_Context->RuntimeRunning );
+				Auxiliary::ScopedStyleVar<float> styleVar( ImGuiStyleVar_Alpha, m_Context->RuntimeRunning ? 0.5f : 1.0f );
+
+				if( Auxiliary::ImageButton( EditorIcons::GetIcon( "Inspect" ), ImVec2( 24, 24 ) ) )
+				{
+					m_CurrentFinderType = AssetType::Sound;
+					open = true;
+
+					if( ap.SpecAssetID != 0 )
+						m_CurrentAssetID = ap.SpecAssetID;
+				}
+
+				ImGui::SameLine();
+
+				if( Auxiliary::DrawAssetFinder( { AssetType::GraphSound, AssetType::Sound }, &open, m_CurrentAssetID ) )
+				{
+					ap.SpecAssetID = m_CurrentAssetID;
+					modified = true;
+				}
+
+				ImGui::PushID( ( int ) ap.UniqueID );
 
 				if( ap.SpecAssetID != 0 )
-					m_CurrentAssetID = ap.SpecAssetID;
+					ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.SpecAssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
+				else
+					ImGui::InputText( "##2dplayerid", ( char* ) "", 256, ImGuiInputTextFlags_ReadOnly );
+
+				ImGui::PopID();
 			}
-
-			ImGui::SameLine();
-
-			if( Auxiliary::DrawAssetFinder( { AssetType::GraphSound, AssetType::Sound }, &open, m_CurrentAssetID ) )
-			{
-				ap.SpecAssetID = m_CurrentAssetID;
-			}
-
-			ImGui::PushID( (int)ap.UniqueID );
-
-			if( ap.SpecAssetID != 0 )
-				ImGui::InputText( "##2dplayerid", ( char* ) std::to_string( ap.SpecAssetID ).c_str(), 256, ImGuiInputTextFlags_ReadOnly );
-			else
-				ImGui::InputText( "##2dplayerid", ( char* )"", 256, ImGuiInputTextFlags_ReadOnly );
-
-			ImGui::PopID();
 
 			if( m_Context->RuntimeRunning )
 			{
-				ImGui::PopItemFlag();
-				ImGui::PopStyleVar();
-			
 				Ref<Sound> sound = AudioSystem::Get().FindSound( ap.UniqueID );
 				if( sound )
 				{
@@ -851,21 +919,27 @@ namespace Saturn {
 			}
 			else
 			{
-				Auxiliary::DrawBoolControl( "Loop", ap.Loop );
-				Auxiliary::DrawBoolControl( "Mute", ap.Mute );
-				Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
+				modified |= Auxiliary::DrawBoolControl( "Loop", ap.Loop );
+				modified |= Auxiliary::DrawBoolControl( "Mute", ap.Mute );
+				modified |= Auxiliary::DrawBoolControl( "Spatialization", ap.Spatialization );
 
-				Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier, 0.0f, 100.0f );
-				Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier, 0.0f, 100.0f );
+				modified |= Auxiliary::DrawFloatControl( "Volume Multiplier", ap.VolumeMultiplier, 0.0f, 100.0f );
+				modified |= Auxiliary::DrawFloatControl( "Pitch Multiplier", ap.PitchMultiplier, 0.0f, 100.0f );
 			}
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 
-		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, []( auto& al )
+		DrawComponent<AudioListenerComponent>( "Audio Listener", entity, [&]( auto& al )
 		{
-			Auxiliary::DrawBoolControl( "Primary", al.Primary );
-			Auxiliary::DrawVec3Control( "Direction", al.Direction );
-			Auxiliary::DrawFloatControl( "ConeInnerAngle", al.ConeInnerAngle );
-			Auxiliary::DrawFloatControl( "ConeOuterAngle", al.ConeOuterAngle );
+			bool modified = false;
+
+			modified =  Auxiliary::DrawBoolControl( "Primary", al.Primary );
+			modified |= Auxiliary::DrawVec3Control( "Direction", al.Direction );
+			modified |= Auxiliary::DrawFloatControl( "ConeInnerAngle", al.ConeInnerAngle );
+			modified |= Auxiliary::DrawFloatControl( "ConeOuterAngle", al.ConeOuterAngle );
+
+			if( modified ) m_Context->MarkDirty();
 		} );
 	}
 

@@ -44,7 +44,9 @@
 
 #include "entt.hpp"
 
+#if defined( SAT_ENABLE_GAMETHREAD )
 #include <shared_mutex>
+#endif
 
 namespace Saturn {
 
@@ -155,13 +157,13 @@ namespace Saturn {
 
 	class Scene : public Asset
 	{
+		SAT_DECLARE_CLASS( Scene, Asset )
 	public:
 		Scene();
 		~Scene();
 
 		[[nodiscard]] Ref<Entity> CreateEntityWithIDScript( UUID uuid, const std::string& name = "", const std::string& rScriptName = "" );
 	public:
-
 		void OnRenderEditor( const EditorCamera& rCamera, Timestep ts, SceneRenderer& rSceneRenderer );
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
@@ -195,7 +197,7 @@ namespace Saturn {
 			}
 		}
 
-		[[nodiscard]] Ref<Entity> GetMainCameraEntity();
+		[[nodiscard]] Ref<Entity> GetMainCameraEntity( bool force = false );
 
 		void AddSelectedEntity( Ref<Entity> entity );
 		void DeselectEntity( Ref<Entity> entity );
@@ -232,14 +234,19 @@ namespace Saturn {
 
 		void RemoveHandle( entt::entity handle ) 
 		{
-			if( m_Registry.valid( handle ) )
+			if( m_Registry.valid( handle ) ) 
+			{
 				m_Registry.destroy( handle );
+			}
 		}
 
 		void StartAudioPlayers();
 		void StopAudioPlayers();
 		void DestroyAudioPlayers();
 		void UpdateAudioListeners();
+
+		void MarkDirty() { SAT_CORE_INFO("Marked dirty!"); m_Dirty = true; }
+		bool IsDirty() const { return m_Dirty; }
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
@@ -271,8 +278,10 @@ namespace Saturn {
 #if defined( SAT_ENABLE_GAMETHREAD )
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
 #endif
-			if( !HasComponent<Ty>( entity ) )
+			if( !HasComponent<Ty>( entity ) ) 
+			{
 				return m_Registry.emplace<Ty>( entity, std::forward<Args>( args )... );
+			}
 			else
 				return GetComponent<Ty>( entity );
 		}
@@ -293,7 +302,9 @@ namespace Saturn {
 			std::unique_lock<std::mutex> Lock( m_Mutex, std::try_to_lock );
 #endif
 			if( HasComponent<Ty>( entity ) )
+			{
 				m_Registry.remove<Ty>( entity );
+			}
 		}
 
 		template<typename Ty>
@@ -319,12 +330,17 @@ namespace Saturn {
 
 		Ref<Entity> m_MainCameraEntity;
 
+#if defined( SAT_ENABLE_GAMETHREAD )
 		std::mutex m_Mutex;
+#endif
+
+		RendererCamera m_RendererCamera;
 
 		// TODO: Change raw pointer to Ref?
 		PhysicsScene* m_PhysicsScene = nullptr;
 
 		UUID m_InternalID;
+		bool m_Dirty = false;
 	private:
 
 		friend class Entity;

@@ -29,17 +29,10 @@
 #include "sppch.h"
 #include "TitleBar.h"
 
-#include "ImGuiAuxiliary.h"
-
-#include "Saturn/Core/EnvironmentVariables.h"
-#include "backends/imgui_impl_vulkan.h"
-
 #include "Saturn/Core/Ruby/RubyWindow.h"
 
 namespace Saturn {
 	
-	static bool ShowAcknowledgements = false;
-
 	TitleBar::TitleBar()
 		: m_Height( 0 )
 	{
@@ -106,10 +99,17 @@ namespace Saturn {
 					if( pressed ) 
 					{
 						// Process on exit events to whatever layer owns this.
-						if( m_OnExitFunction )
-							m_OnExitFunction();
-
-						Application::Get().Close();
+						if( m_OnExitFunction /*!=nullptr*/ )
+						{
+							if( ( m_OnExitFunction )() /*==true*/ ) 
+							{
+								// If the exit request was accepted, the close app.
+								// It may not be accepted because we might have unsaved changes.
+								Application::Get().Close();
+							}
+						}
+						else
+							Application::Get().Close();
 					}
 
 					buttonRect.Min.x -= buttonSize;
@@ -178,7 +178,7 @@ namespace Saturn {
 		m_MenuBarFunctions.push_back( rrFunc );
 	}
 
-	void TitleBar::AddOnExitFunction( std::function<void()>&& rrFunc )
+	void TitleBar::AddOnExitFunction( std::function<bool()>&& rrFunc )
 	{
 		m_OnExitFunction = std::move( rrFunc );
 	}

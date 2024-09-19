@@ -148,8 +148,8 @@ namespace Saturn {
 	public:
 		Texture2D() : Texture() {}
 
-		Texture2D( std::filesystem::path Path, AddressingMode Mode = AddressingMode::Repeat, bool flip = true ) 
-			: Texture( Path, Mode ) { CreateTextureImage( flip ); }
+		Texture2D( const std::filesystem::path& rPath, AddressingMode Mode = AddressingMode::Repeat, bool flip = true ) 
+			: Texture( rPath, Mode ) { CreateTextureImage( flip ); }
 
 		Texture2D( ImageFormat format, uint32_t width, uint32_t height, const void* pData, bool storage = false );
 		
@@ -175,8 +175,8 @@ namespace Saturn {
 	public:
 		TextureCube() : Texture() {}
 
-		TextureCube( std::filesystem::path Path, AddressingMode Mode )
-			: Texture( Path, Mode )
+		TextureCube( const std::filesystem::path& rPath, AddressingMode Mode )
+			: Texture( rPath, Mode )
 		{
 		}
 

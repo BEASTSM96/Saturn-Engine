@@ -145,7 +145,7 @@ namespace Saturn {
 	void ProjectBrowserLayer::OnAttach()
 	{	
 		m_TitleBar = new TitleBar();
-		m_TitleBar->AddOnExitFunction( [this]() 
+		m_TitleBar->AddOnExitFunction( [this]() -> bool
 		{
 			m_ShouldThreadTerminate = true;
 
@@ -154,6 +154,8 @@ namespace Saturn {
 			std::this_thread::sleep_for( 1ms );
 
 			m_RecentProjectThread.join();
+
+			return true;
 		} );
 
 		m_NoIconTexture = Ref<Texture2D>::Create( "content/textures/NoIcon.png" );

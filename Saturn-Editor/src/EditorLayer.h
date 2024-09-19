@@ -35,6 +35,7 @@
 
 #include <Saturn/Scene/Scene.h>
 #include <Saturn/Core/Layer.h>
+#include <Saturn/Core/Renderer/SceneFlyCamera.h>
 
 #include <Saturn/ImGui/JobProgress.h>
 
@@ -86,6 +87,7 @@ namespace Saturn {
 		void DrawSceneRendererWindow();
 		void DrawRendererWindow();
 		void DrawMetadataDebug();
+		void DrawSceneDirtyPopup();
 
 		// Viewport
 		void DrawViewport();
@@ -95,6 +97,7 @@ namespace Saturn {
 		
 		// Close editor and open the project browser.
 		void CloseEditorAndOpenPB();
+		bool OnTitlebarExit();
 
 		void CheckMissingEnv();
 		bool BuildShaderBundle();
@@ -114,6 +117,7 @@ namespace Saturn {
 		enum class MessageBoxType 
 		{
 			Information,
+			InformationNoIcon,
 			Warning,
 			Error
 		};
@@ -172,6 +176,7 @@ namespace Saturn {
 		bool m_ShowMetadataDebug = false;
 		bool m_ShowRendererWindow = true;
 		bool m_ShowSceneRendererWindow = true;
+		bool m_ShowSceneDirtyModal = false;
 
 		bool m_RequestRuntime = false;
 
@@ -185,7 +190,7 @@ namespace Saturn {
 
 		std::queue<MessageBoxInfo> m_MessageBoxes;
 
-		Buffer m_CopyComponentBuffer;
+		SceneFlyCamera m_FallbackCamera;
 
 		Ref<Scene> m_EditorScene = nullptr;
 		Ref<Scene> m_RuntimeScene = nullptr;

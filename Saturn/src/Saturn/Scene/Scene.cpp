@@ -29,17 +29,20 @@
 #include "sppch.h"
 #include "Scene.h"
 
+#include "Entity.h"
+#include "Components.h"
+
 #include "Saturn/Vulkan/SceneRenderer.h"
 #include "Saturn/Vulkan/Renderer2D.h"
 #include "Saturn/Vulkan/VulkanContext.h"
-
-#include "Entity.h"
-#include "Components.h"
 
 #include "Saturn/Asset/Prefab.h"
 #include "Saturn/Asset/AssetManager.h"
 
 #include "Saturn/Core/OptickProfiler.h"
+#include "Saturn/Core/VirtualFS.h"
+#include "Saturn/Core/MemoryStream.h"
+#include "Saturn/Core/Renderer/SceneFlyCamera.h"
 
 #include "Saturn/Physics/PhysicsScene.h"
 #include "Saturn/Physics/PhysicsRigidBody.h"
@@ -52,16 +55,11 @@
 
 #include "Saturn/ImGui/EditorIcons.h"
 
-#include "Saturn/Core/VirtualFS.h"
-#include "Saturn/Core/MemoryStream.h"
-
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Saturn {
-
-	static std::unordered_map<UUID, Scene*> s_ActiveScenes;
 
 	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition( const glm::mat4& transform )
 	{
@@ -75,9 +73,6 @@ namespace Saturn {
 
 	Scene::Scene()
 	{
-		SAT_CORE_INFO( "Created new scene: Asset ID: {0} SceneID: {1}", ID, m_InternalID );
-
-		s_ActiveScenes[ m_InternalID ] = this;
 		m_SceneEntity = m_Registry.create();
 		m_Registry.emplace<SceneComponent>( m_SceneEntity, m_InternalID );
 	}
@@ -85,8 +80,6 @@ namespace Saturn {
 	Scene::~Scene()
 	{
 		Empty();
-
-		s_ActiveScenes.erase( m_InternalID );
 	}
 
 	void Scene::Empty()
@@ -134,14 +127,20 @@ namespace Saturn {
 	}
 
 	// TODO: We don't want to search for the main camera entity every frame.
-	Ref<Entity> Scene::GetMainCameraEntity()
+	Ref<Entity> Scene::GetMainCameraEntity( bool force )
 	{
+		if( m_MainCameraEntity && !force )
+			return m_MainCameraEntity;
+
 		auto entities = GetAllEntitiesWith<CameraComponent>();
 
 		for( auto& entity : entities )
 		{
 			if( entity->GetComponent<CameraComponent>().MainCamera )
-				return entity;
+			{
+				m_MainCameraEntity = entity;
+				return m_MainCameraEntity;
+			}
 		}
 
 		return nullptr;
@@ -209,7 +208,10 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
-		Renderer2D::Get().SetCamera( rCamera.ViewProjection(), rCamera.ViewMatrix() );
+		m_RendererCamera.Camera = rCamera;
+		m_RendererCamera.ViewMatrix = rCamera.ViewMatrix();
+
+		Renderer2D::Get().SetCamera( m_RendererCamera );
 		Renderer2D::Get().PreRender();
 
 		// Lights
@@ -298,8 +300,7 @@ namespace Saturn {
 				{
 					auto [transformComponent, comp] = listeners.get<TransformComponent, AudioListenerComponent>( e );
 
-					auto height = transformComponent.Scale.y;
-					auto pos = glm::vec3( transformComponent.Position.x, height + 5.0f, transformComponent.Position.z );
+					auto pos = glm::vec3( transformComponent.Position.x, transformComponent.Position.y + 2.5f, transformComponent.Position.z );
 
 					Renderer2D::Get().SubmitBillboardTextured(
 						pos,
@@ -360,7 +361,7 @@ namespace Saturn {
 			}
 		}
 
-		rSceneRenderer.SetCamera( { rCamera, rCamera.ViewMatrix() } );
+		rSceneRenderer.SetCamera( m_RendererCamera );
 	}
 
 	void Scene::OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer )
@@ -437,17 +438,23 @@ namespace Saturn {
 			}
 		}
 
-		// Init scene camera projection
+		// Check twice because we are always going to have to set the projection
+		if( m_MainCameraEntity )
+		{
+			auto& rCamera = m_MainCameraEntity->GetComponent<CameraComponent>().Camera;
+			rCamera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
+			auto view = glm::inverse( GetTransformRelativeToParent( m_MainCameraEntity ) );
+			
+			m_RendererCamera.Camera = rCamera;
+			m_RendererCamera.ViewMatrix = view;
+		}
+		else
+		{
+			// TODO:
+		}
 
-		auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
-		auto view = glm::inverse( GetTransformRelativeToParent( m_MainCameraEntity ) );
-
-		SceneCamera& camera = rCameraComponent.Camera;
-
-		camera.SetViewportSize( rSceneRenderer.Width(), rSceneRenderer.Height() );
-
-		Renderer2D::Get().SetCamera( camera.ProjectionMatrix() * view, view );
-		rSceneRenderer.SetCamera( { camera, view } );
+		rSceneRenderer.SetCamera( m_RendererCamera );
+		Renderer2D::Get().SetCamera( m_RendererCamera );
 	}
 
 	Ref<Entity> Scene::CreateEntityWithIDScript( UUID uuid, const std::string& name /*= "" */, const std::string& rScriptName )
@@ -687,7 +694,7 @@ namespace Saturn {
 		StartAudioPlayers();
 
 		// Init new scene camera
-		m_MainCameraEntity = GetMainCameraEntity();
+		m_MainCameraEntity = GetMainCameraEntity( true );
 		auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
 		rCameraComponent.Camera.SetFOV( rCameraComponent.Fov );
 	}

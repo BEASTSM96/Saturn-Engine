@@ -92,7 +92,9 @@ namespace Saturn {
 	static constexpr inline bool operator!=( const ImVec2& lhs, const ImVec2& rhs ) { return !( lhs == rhs ); }
 
 	EditorLayer::EditorLayer() 
-		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), m_EditorScene( Ref<Scene>::Create() )
+		: m_EditorCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), 
+		m_FallbackCamera( 45.0f, 1280.0f, 720.0f, 0.1f, 1000.0f ), 
+		m_EditorScene( Ref<Scene>::Create() )
 	{
 		Scene::SetActiveScene( m_EditorScene.Get() );
 
@@ -193,8 +195,6 @@ namespace Saturn {
 
 	EditorLayer::~EditorLayer()
 	{
-		m_TitleBar = nullptr;
-		
 		AssetViewer::Terminate();
 
 		m_TitleBar = nullptr;
@@ -318,6 +318,7 @@ namespace Saturn {
 		if( m_ShowSceneRendererWindow ) DrawSceneRendererWindow();
 		if( m_ShowRendererWindow )		DrawRendererWindow();
 		if( m_ShowMetadataDebug )       DrawMetadataDebug();
+		if( m_ShowSceneDirtyModal )     DrawSceneDirtyPopup();
 
 		AssetViewer::Draw();
 
@@ -482,6 +483,8 @@ namespace Saturn {
 					}
 
 					hierarchyPanel->ClearSelection();
+
+					GActiveScene->MarkDirty();
 				}
 			} break;
 
@@ -520,6 +523,8 @@ namespace Saturn {
 						{
 							GActiveScene->DuplicateEntity( rEntity );
 						}
+
+						GActiveScene->MarkDirty();
 					}
 
 				} break;
@@ -1543,6 +1548,53 @@ namespace Saturn {
 		ImGui::End();
 	}
 
+	void EditorLayer::DrawSceneDirtyPopup()
+	{
+		ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2( 0.5f, 0.5f ) );
+		if( ImGui::BeginPopupModal( "SceneDirtyPopup", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
+		{
+			ImGui::Text( "You have unsaved changes to this scene. Would you like to save them?" );
+
+			ImGui::Separator();
+
+			ImGui::BeginHorizontal( "##SCENEDIRTHOZ" );
+			
+			if( ImGui::Button( "Save" ) ) 
+			{
+				SaveFile();
+
+				m_ShowSceneDirtyModal = false;
+				ImGui::CloseCurrentPopup();
+
+				Application::Get().Close();
+			}
+
+			ImGui::Spring();
+
+			if( ImGui::Button( "Close without saving" ) )
+			{
+				m_ShowSceneDirtyModal = false;
+				ImGui::CloseCurrentPopup();
+
+				Application::Get().Close();
+			}
+
+			ImGui::Spring();
+
+			if( ImGui::Button( "Cancel" ) )
+			{
+				m_ShowSceneDirtyModal = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndHorizontal();
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::OpenPopup( "SceneDirtyPopup" );
+	}
+
 	void EditorLayer::DrawViewport()
 	{
 		// Viewport Image & Drag and drop handling
@@ -1590,6 +1642,7 @@ namespace Saturn {
 				Ref<Prefab> prefabAsset = AssetManager::Get().GetAssetAs<Prefab>( asset->GetAssetID() );
 
 				m_EditorScene->CreatePrefab( prefabAsset );
+				m_EditorScene->MarkDirty();
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_MODEL" ) )
@@ -1604,8 +1657,11 @@ namespace Saturn {
 				Ref<Entity> entity = Ref<Entity>::Create();
 				entity->SetName( asset->Name );
 
-				entity->AddComponent<StaticMeshComponent>().Mesh = meshAsset;
-				entity->AddComponent<StaticMeshComponent>().MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
+				auto& rMeshComponent = entity->AddComponent<StaticMeshComponent>();
+				rMeshComponent.Mesh = meshAsset;
+				rMeshComponent.MaterialRegistry = Ref<MaterialRegistry>::Create( meshAsset );
+
+				m_EditorScene->MarkDirty();
 			}
 
 			ImGui::EndDragDropTarget();
@@ -1686,6 +1742,9 @@ namespace Saturn {
 					tc.Position = translation;
 					tc.SetRotation( tc.GetRotationEuler() += DeltaRotation );
 					tc.Scale = scale;
+
+					// TODO: It would be nice if ImGuizmo provided a way for us to know when we stopped using instead of us marking the scene dirty every time we move.
+					m_EditorScene->MarkDirty();
 				}
 			}
 		}
@@ -1815,10 +1874,6 @@ namespace Saturn {
 
 		if( ImGui::BeginPopup( "RuntimeSettings" ) )
 		{
-			// TODO:
-			ImGui::Checkbox( "Render Debug Colliders", 0 );
-			ImGui::Checkbox( "Render Debug Billboards", 0 );
-
 			ImGui::EndPopup();
 		}
 
@@ -1840,18 +1895,32 @@ namespace Saturn {
 
 		// TODO: Allow for other platforms
 #if defined( SAT_DEBUG )
-		SaturnDir /= "bin";
-		SaturnDir /= "Debug-windows-x86_64";
-		SaturnDir /= "ProjectBrowser";
-		SaturnDir /= "ProjectBrowser.exe";
+		SaturnDir /= L"bin";
+		SaturnDir /= L"Debug-windows-x86_64";
+		SaturnDir /= L"ProjectBrowser";
+		SaturnDir /= L"ProjectBrowser.exe";
 #else
-		SaturnDir /= "bin";
-		SaturnDir /= "Release-windows-x86_64";
-		SaturnDir /= "ProjectBrowser";
-		SaturnDir /= "ProjectBrowser.exe";
+		SaturnDir /= L"bin";
+		SaturnDir /= L"Release-windows-x86_64";
+		SaturnDir /= L"ProjectBrowser";
+		SaturnDir /= L"ProjectBrowser.exe";
 #endif
 		DeatchedProcess dp( SaturnDir.wstring(), WorkingDir );
 		Application::Get().Close();
+	}
+
+	bool EditorLayer::OnTitlebarExit()
+	{
+		if( m_EditorScene->IsDirty() )
+		{
+			m_ShowSceneDirtyModal = true;
+			ImGui::OpenPopup( "SceneDirtyPopup" );
+
+			Application::Get().GetWindow()->FlashAttention();
+		}
+
+		// Accept exit request if scene is not dirty.
+		return !m_EditorScene->IsDirty();
 	}
 
 	void EditorLayer::DrawMessageBox( const MessageBoxInfo& rInfo )
@@ -1874,6 +1943,8 @@ namespace Saturn {
 				{
 					Auxiliary::Image( EditorIcons::GetIcon( "Error" ), ImVec2( 72, 72 ) );
 				} break;
+
+				case MessageBoxType::InformationNoIcon: break;
 			}
 
 			ImGui::Text( rInfo.Text.c_str() );
