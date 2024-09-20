@@ -220,37 +220,10 @@ namespace Saturn::Auxiliary {
 
 	bool DrawDisabledFloatControl( const std::string& rLabel, float& values, float min, float max, float columnWidth )
 	{
-		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
+		ScopedItemFlag disabled( ImGuiItemFlags_Disabled, true );
+		ScopedStyleVar alpha( ImGuiStyleVar_Alpha, 0.5f );
 
-		bool modified = false;
-
-		ImGuiIO& io = ImGui::GetIO();
-
-		ImGui::PushID( rLabel.c_str() );
-		ImGui::Columns( 2 );
-		ImGui::SetColumnWidth( 0, columnWidth );
-
-		ImGui::Text( rLabel.c_str() );
-
-		ImGui::NextColumn();
-
-		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
-		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
-
-		modified |= ImGui::DragFloat( "##floatx", &values, 0.1f, max, min, "%.2f", ImGuiSliderFlags_AlwaysClamp );
-
-		ImGui::PopItemWidth();
-		ImGui::PopStyleVar();
-
-		ImGui::Columns( 1 );
-
-		ImGui::PopID();
-
-		ImGui::PopItemFlag();
-		ImGui::PopStyleVar();
-
-		return modified;
+		return DrawFloatControl( rLabel, values, min, max, columnWidth );
 	}
 
 	bool DrawIntControl( const std::string& rLabel, int& values, int min, int max, float columnWidth /*= 125.0f */ )
@@ -282,6 +255,14 @@ namespace Saturn::Auxiliary {
 		ImGui::PopID();
 
 		return modified;
+	}
+
+	bool DrawDisabledIntControl( const std::string& rLabel, int& values, int min /*= 0.0f*/, int max /*= 500.0f*/, float columnWidth /*= 125.0f */ )
+	{
+		ScopedItemFlag disabled( ImGuiItemFlags_Disabled, true );
+		ScopedStyleVar alpha( ImGuiStyleVar_Alpha, 0.5f );
+
+		return DrawIntControl( rLabel, values, min, max, columnWidth );
 	}
 
 	bool DrawBoolControl( const std::string& rLabel, bool& value, float columnWidth /*= 125.0f */ )
@@ -325,38 +306,10 @@ namespace Saturn::Auxiliary {
 
 	bool DrawDisabledBoolControl( const std::string& rrLabel, bool& value, float columnWidth /*= 125.0f */ )
 	{
-		ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-		ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.5f );
-		
-		bool modified = false;
+		ScopedItemFlag disabled( ImGuiItemFlags_Disabled, true );
+		ScopedStyleVar alpha( ImGuiStyleVar_Alpha, 0.5f );
 
-		ImGuiIO& io = ImGui::GetIO();
-
-		ImGui::PushID( rrLabel.c_str() );
-
-		ImGui::Columns( 2 );
-		ImGui::SetColumnWidth( 0, columnWidth );
-
-		ImGui::Text( rrLabel.c_str() );
-
-		ImGui::NextColumn();
-
-		ImGui::PushMultiItemsWidths( 1, ImGui::CalcItemWidth() );
-		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 } );
-
-		modified |= ImGui::Checkbox( "##boolean", &value );
-
-		ImGui::PopItemWidth();
-		ImGui::PopStyleVar();
-
-		ImGui::Columns( 1 );
-
-		ImGui::PopID();
-
-		ImGui::PopStyleVar( 1 );
-		ImGui::PopItemFlag();
-
-		return modified;
+		return DrawBoolControl( rrLabel, value, columnWidth );
 	}
 
 	void Image( Ref<Image2D> Image, const ImVec2& Size, const ImVec2& UV0, const ImVec2& UV1, const ImVec4& TintColor, const ImVec4& BorderColor )
@@ -612,4 +565,5 @@ namespace Saturn::Auxiliary {
 
 		return Modified;
 	}
+
 }

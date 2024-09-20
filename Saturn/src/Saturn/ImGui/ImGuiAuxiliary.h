@@ -82,6 +82,7 @@ namespace Saturn::Auxiliary {
 	extern bool DrawDisabledFloatControl( const std::string& rLabel, float& values, float min = 0.0f, float max = 500.0f, float columnWidth = 125.0f );
 
 	extern bool DrawIntControl( const std::string& rLabel, int& values, int min = 0.0f, int max = 500.0f, float columnWidth = 125.0f );
+	extern bool DrawDisabledIntControl( const std::string& rLabel, int& values, int min = 0.0f, int max = 500.0f, float columnWidth = 125.0f );
 	
 	extern bool DrawBoolControl( const std::string& rLabel, bool& value, float columnWidth = 125.0f );
 	extern bool DrawDisabledBoolControl( const std::string& rLabel, bool& value, float columnWidth = 125.0f );

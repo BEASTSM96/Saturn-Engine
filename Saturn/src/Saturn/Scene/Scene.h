@@ -245,7 +245,8 @@ namespace Saturn {
 		void DestroyAudioPlayers();
 		void UpdateAudioListeners();
 
-		void MarkDirty() { SAT_CORE_INFO("Marked dirty!"); m_Dirty = true; }
+		void MarkDirty() { m_Dirty = true; }
+		void CleanDirty() { m_Dirty = false; }
 		bool IsDirty() const { return m_Dirty; }
 
 		static void   SetActiveScene( Scene* pScene );

@@ -77,6 +77,8 @@ namespace Saturn {
 		
 		std::ofstream FileOut( fullPath );
 		FileOut << out.c_str();
+
+		m_Scene->CleanDirty();
 	}
 
 	void SceneSerialiser::Deserialise()

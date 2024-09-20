@@ -630,7 +630,7 @@ namespace Saturn {
 				if( ImGui::BeginItemTooltip() )
 				{
 					ImGui::Text( "This will override the meshes physics material to an asset of your choice." );
-					ImGui::Text( "If there is no mesh then the engine will automatically use the project default physics material. If there is no project default then it will create a internal mesh for it." );
+					ImGui::Text( "If there is no mesh then the engine will automatically use the project default physics material. If there is no project default then it will create a internal material for it." );
 					ImGui::Text( "You do not need to change this if you wish to keep using the meshes physics material." );
 
 					ImGui::EndTooltip();
