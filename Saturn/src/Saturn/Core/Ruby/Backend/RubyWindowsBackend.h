@@ -63,6 +63,7 @@ namespace Saturn {
 		void MoveWindow( int x, int y ) override;
 
 		void SetTitle( const std::string& rTitle ) override;
+		void SetTitle( const std::wstring& rTitle ) override;
 
 		void SetMousePos( double x, double y ) override;
 		void GetMousePos( double* x, double* y ) override;

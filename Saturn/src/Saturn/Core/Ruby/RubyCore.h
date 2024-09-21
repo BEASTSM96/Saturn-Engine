@@ -97,7 +97,7 @@ namespace Saturn {
 
 	struct RubyWindowSpecification
 	{
-		std::string_view Name;
+		std::wstring_view Name;
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		RubyGraphicsAPI GraphicsAPI = RubyGraphicsAPI::None;

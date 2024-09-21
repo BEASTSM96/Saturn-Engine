@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <string>
-
 #define SCLASS(...)
 #define SPROPERTY(...)
 

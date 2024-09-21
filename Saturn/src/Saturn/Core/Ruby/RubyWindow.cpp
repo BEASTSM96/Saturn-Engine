@@ -29,6 +29,8 @@
 #include "sppch.h"
 #include "RubyWindow.h"
 
+#include "Saturn/Core/StringAuxiliary.h"
+
 #if defined(_WIN32)
 #include "Backend/RubyWindowsBackend.h"
 #endif
@@ -223,6 +225,12 @@ namespace Saturn {
 	}
 
 	void RubyWindow::ChangeTitle( const std::string& rTitle )
+	{
+		m_WindowTitle = Auxiliary::ConvertString( rTitle );
+		m_pDefaultBackend->SetTitle( m_WindowTitle );
+	}
+
+	void RubyWindow::ChangeTitle( const std::wstring& rTitle )
 	{
 		m_WindowTitle = rTitle;
 		m_pDefaultBackend->SetTitle( rTitle );

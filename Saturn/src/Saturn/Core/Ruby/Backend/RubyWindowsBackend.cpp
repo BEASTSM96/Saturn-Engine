@@ -30,6 +30,7 @@
 #include "RubyWindowsBackend.h"
 
 #include "Saturn/Core/Ruby/RubyWindow.h"
+#include "Saturn/Core/StringAuxiliary.h"
 
 #if defined( SAT_RBY_INCLUDE_VULKAN )
 #include <vulkan_win32.h>
@@ -49,14 +50,14 @@ struct RubyWindowRegister
 {
 	RubyWindowRegister() 
 	{
-		WNDCLASS wc = { .style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC, .lpfnWndProc = RubyWindowProc, .hInstance = GetModuleHandle( nullptr ), .hCursor = LoadCursor( nullptr, IDC_ARROW ), .lpszClassName = DEFAULT_WINDOW_CLASS_NAME };
+		WNDCLASSW wc = { .style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC, .lpfnWndProc = RubyWindowProc, .hInstance = GetModuleHandle( nullptr ), .hCursor = LoadCursor( nullptr, IDC_ARROW ), .lpszClassName = DEFAULT_WINDOW_CLASS_NAME };
 
-		::RegisterClass( &wc );
+		::RegisterClassW( &wc );
 	}
 
 	~RubyWindowRegister()
 	{
-		::UnregisterClass( DEFAULT_WINDOW_CLASS_NAME, GetModuleHandle( nullptr ) );
+		::UnregisterClassW( DEFAULT_WINDOW_CLASS_NAME, GetModuleHandle( nullptr ) );
 	}
 } static s_RubyWindowRegister;
 
@@ -304,10 +305,20 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		} break;
 
 		// The WM_CHAR message is sent when a printable character key is pressed.
+		// Handle Ansi (Ascii) characters and UTF-8
 		case WM_CHAR: 
 		{
-			char c = static_cast< char >( WParam );
-			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::InputCharacter, c, 0 );
+			wchar_t wc = static_cast< wchar_t >( WParam );
+			pThis->GetParent()->DispatchEvent<RubyCharacterEvent>( RubyEventType::InputCharacter, wc );
+		} break;
+
+		case WM_UNICHAR: 
+		{
+			if( WParam == UNICODE_NOCHAR )
+			{
+				// Tell any other applications that we support UTF-16
+				return TRUE;
+			}
 		} break;
 
 		//////////////////////////////////////////////////////////////////////////
@@ -414,12 +425,7 @@ namespace Saturn {
 	{
 		DWORD WindowStyle = ChooseStyle();
 
-		// Temp:
-		// Ruby supports wstrings as titles however ImGui does not use them so will convert our title into a wstring.
-		// "codecvt_utf8" and "wstring_convert" are going to be removed in C++26
-		std::wstring name = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes( m_pWindow->m_WindowTitle.data() );
-
-		m_Handle = ::CreateWindowEx( 0, DEFAULT_WINDOW_CLASS_NAME, name.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
+		m_Handle = ::CreateWindowExW( 0, DEFAULT_WINDOW_CLASS_NAME, m_pWindow->m_WindowTitle.data(), WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, ( int ) m_pWindow->GetWidth(), ( int ) m_pWindow->GetHeight(), NULL, NULL, GetModuleHandle( NULL ), NULL );
 
 		::SetPropW( m_Handle, L"RubyData", this );
 
@@ -539,6 +545,11 @@ namespace Saturn {
 	void RubyWindowsBackend::SetTitle( const std::string& rTitle )
 	{
 		::SetWindowTextA( m_Handle, rTitle.data() );
+	}
+
+	void RubyWindowsBackend::SetTitle( const std::wstring& rTitle )
+	{
+		::SetWindowTextW( m_Handle, rTitle.data() );
 	}
 
 	void RubyWindowsBackend::Maximize()
@@ -789,33 +800,8 @@ namespace Saturn {
 
 	void RubyWindowsBackend::SetClipboardText( const std::string& rTextData )
 	{
-		// Try open the clipboard.
-		if( ::OpenClipboard( m_Handle ) )
-		{
-			::EmptyClipboard();
-
-			size_t DataSize = ( rTextData.size() + 1 ) * sizeof( char );
-			HGLOBAL ClipboardData = ::GlobalAlloc( GMEM_MOVEABLE, DataSize );
-
-			if( ClipboardData )
-			{
-				// Lock and copy data.
-				void* pData = ::GlobalLock( ClipboardData );
-
-				if( pData )
-				{
-					// Copy data.
-					strcpy_s( ( char* ) pData, DataSize, rTextData.c_str() );
-
-					::GlobalUnlock( ClipboardData );
-
-					// Set the data on the clipboard.
-					::SetClipboardData( CF_TEXT, ClipboardData );
-				}
-			}
-
-			::CloseClipboard();
-		}
+		std::wstring textDataW = Auxiliary::ConvertString( rTextData );
+		SetClipboardText( textDataW );
 	}
 
 	void RubyWindowsBackend::SetClipboardText( const std::wstring& rTextData )
@@ -851,35 +837,18 @@ namespace Saturn {
 
 	const char* RubyWindowsBackend::GetClipboardText()
 	{
-		const char* result = nullptr;
+		const wchar_t* pResult = nullptr;
+		pResult = GetClipboardTextW();
+		
+		// TODO: Create a C style string instead of using a C++ string here.
+		std::string AnsiResult = Auxiliary::ConvertWString( std::wstring( pResult ) );
 
-		// Try open the clipboard.
-		if( ::OpenClipboard( m_Handle ) )
-		{
-			HANDLE ClipboardData = ::GetClipboardData( CF_TEXT );
-
-			if( ClipboardData )
-			{
-				// Lock and copy data.
-				char* pData = static_cast< char* >( ::GlobalLock( ClipboardData ) );
-
-				if( pData )
-				{
-					result = pData;
-
-					::GlobalUnlock( ClipboardData );
-				}
-			}
-
-			::CloseClipboard();
-		}
-
-		return result;
+		return AnsiResult.data();
 	}
 
 	const wchar_t* RubyWindowsBackend::GetClipboardTextW()
 	{
-		const wchar_t* result = L"";
+		wchar_t* result = nullptr;
 
 		// Try open the clipboard.
 		if( ::OpenClipboard( m_Handle ) )

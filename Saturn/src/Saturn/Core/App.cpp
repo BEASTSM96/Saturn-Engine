@@ -72,7 +72,7 @@ namespace Saturn {
 
 		RubyStyle windowStyle = HasFlag( ApplicationFlag_Titlebar ) ? RubyStyle::Default : spec.WindowStyle;
 
-		RubyWindowSpecification windowSpec { .Name = "Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = windowStyle, .ShowNow = false };
+		RubyWindowSpecification windowSpec { .Name = L"Saturn", .Width = width, .Height = height, .GraphicsAPI = RubyGraphicsAPI::Vulkan, .Style = windowStyle, .ShowNow = false };
 		m_Window = new RubyWindow( windowSpec );
 		m_Window->SetEventTarget( this );
 

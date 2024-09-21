@@ -133,14 +133,15 @@ namespace Saturn {
 	{
 	public:
 		RubyCharacterEvent() = default;
-		RubyCharacterEvent( RubyEventType Type, char c ) : RubyEvent( Type ), m_Character( c ) {}
+		RubyCharacterEvent( RubyEventType Type, wchar_t wc ) : RubyEvent( Type ), m_WideCharacter( wc ) {}
 
 		~RubyCharacterEvent() = default;
 
-		char GetCharacter() const { return m_Character; }
+		wchar_t GetCharacter() const { return m_WideCharacter; }
+		char GetCharacterA()   const { return (char)m_WideCharacter; }
 
 	private:
-		char m_Character;
+		wchar_t m_WideCharacter;
 	};
 
 	class RubyMaximizeEvent : public RubyEvent

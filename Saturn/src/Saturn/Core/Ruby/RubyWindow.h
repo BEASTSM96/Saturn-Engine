@@ -59,6 +59,7 @@ namespace Saturn {
 		void SetMouseCursor( RubyCursorType Cursor );
 		void SetMouseCursorMode( RubyCursorMode mode );
 		void ChangeTitle( const std::string& rTitle );
+		void ChangeTitle( const std::wstring& rTitle );
 		void SetClipboardText( const std::string& rTextData );
 		void SetClipboardText( const std::wstring& rTextData );
 		void Focus();
@@ -199,7 +200,7 @@ namespace Saturn {
 		RubyBackendBase* m_pDefaultBackend = nullptr;
 		RubyEventTarget* m_pEventTarget = nullptr;
 
-		std::string m_WindowTitle = "";
+		std::wstring m_WindowTitle = L"";
 		RubyGraphicsAPI m_GraphicsAPI = RubyGraphicsAPI::None;
 		RubyStyle m_Style = RubyStyle::Default;
 

@@ -178,6 +178,7 @@ namespace Saturn {
 		contentBrowserPanel->ResetPath( rUserSettings.StartupProject );
 
 		m_TitleBar->AddMenuBarFunction( SAT_BIND_EVENT_FN( DrawTitlebarOptions ) );
+		m_TitleBar->AddOnExitFunction( SAT_BIND_EVENT_FN( OnTitlebarExit ) );
 
 		// Now open the startup scene
 		OpenFile( Project::GetActiveProject()->GetConfig().StartupSceneID );
