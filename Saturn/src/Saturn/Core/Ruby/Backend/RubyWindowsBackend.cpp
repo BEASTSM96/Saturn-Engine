@@ -36,10 +36,6 @@
 #include <vulkan_win32.h>
 #endif
 
-#include <codecvt>
-#include <locale>
-#include <windowsx.h>
-
 //////////////////////////////////////////////////////////////////////////
 
 LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
@@ -136,7 +132,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			UINT width = LOWORD( LParam );
 			UINT height = HIWORD( LParam );
 
-			pThis->GetParent()->SetSize( width, height );
+			pThis->GetParent()->IntrnlSetSize( width, height );
 
 			if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked ) 
 			{
@@ -179,7 +175,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 
 		case WM_KILLFOCUS: 
 		{
-			pThis->GetParent()->ClearKeysAndMouse();
+			pThis->GetParent()->IntrnlClearKeysAndMouse();
 			[[fallthrough]];
 		}
 
@@ -208,14 +204,14 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( 
 					RubyEventType::MouseMoved, ( float ) lockedDelta.x, ( float ) lockedDelta.y );
 
-				pThis->GetParent()->SetLockedMousePos( lockedDelta );
+				pThis->GetParent()->IntrnlSetLockedMousePos( lockedDelta );
 			}
 			else
 			{
 				pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( RubyEventType::MouseMoved, ( float ) x, ( float ) y );
 			}
 			
-			pThis->GetParent()->SetLastMousePos( { x, y } );
+			pThis->GetParent()->IntrnlSetLastMousePos( { x, y } );
 		} return 0;
 
 		case WM_SETCURSOR: 
@@ -236,7 +232,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		{
 			RubyMouseButton btn = ( Msg == WM_LBUTTONDOWN ? RubyMouseButton::Left : Msg == WM_RBUTTONDOWN ? RubyMouseButton::Right : RubyMouseButton::Middle );
 
-			pThis->GetParent()->SetMouseDown( btn );
+			pThis->GetParent()->IntrnlSetMouseState( btn );
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MousePressed, ( int ) btn );
 		} break;
 
@@ -246,7 +242,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 		{
 			RubyMouseButton btn = ( Msg == WM_LBUTTONUP ? RubyMouseButton::Left : Msg == WM_RBUTTONUP ? RubyMouseButton::Right : RubyMouseButton::Middle );
 
-			pThis->GetParent()->SetMouseDown( btn, false );
+			pThis->GetParent()->IntrnlSetMouseState( btn, false );
 			pThis->GetParent()->DispatchEvent<RubyMouseEvent>( RubyEventType::MouseReleased, ( int )btn );
 		} break;
 
@@ -289,7 +285,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			int nativeCode = ( int ) WParam;
 			int Modifiers = HandleKeyMods();
 
-			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, true );
+			pThis->GetParent()->IntrnlSetKeyDown( ( RubyKey ) nativeCode, true );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyPressed, nativeCode, Modifiers );
 		} break;
 
@@ -300,7 +296,7 @@ LRESULT CALLBACK RubyWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LP
 			int nativeCode = ( int ) WParam;
 			int Modifiers = HandleKeyMods();
 
-			pThis->GetParent()->SetKeyDown( ( RubyKey ) nativeCode, false );
+			pThis->GetParent()->IntrnlSetKeyDown( ( RubyKey ) nativeCode, false );
 			pThis->GetParent()->DispatchEvent<RubyKeyEvent>( RubyEventType::KeyReleased, nativeCode, Modifiers );
 		} break;
 
@@ -666,7 +662,7 @@ namespace Saturn {
 
 	void RubyWindowsBackend::SetMousePos( double x, double y )
 	{
-		m_pWindow->SetLastMousePos( { ( int ) x, ( int ) y } );
+		m_pWindow->IntrnlSetLastMousePos( { ( int ) x, ( int ) y } );
 
 		POINT newPos{ ( int ) x, ( int ) y };
 
@@ -677,11 +673,17 @@ namespace Saturn {
 	void RubyWindowsBackend::GetMousePos( double* x, double* y )
 	{
 		POINT pos{};
-		::GetCursorPos( &pos );
-		::ScreenToClient( m_Handle, &pos );
 
-		*x = pos.x;
-		*y = pos.y;
+		if( x ) *x = 0;
+		if( y ) *y = 0;
+
+		if( ::GetCursorPos( &pos ) ) 
+		{
+			::ScreenToClient( m_Handle, &pos );
+
+			*x = pos.x;
+			*y = pos.y;
+		}
 	}
 
 	void RubyWindowsBackend::DestroyWindow()
@@ -837,13 +839,16 @@ namespace Saturn {
 
 	const char* RubyWindowsBackend::GetClipboardText()
 	{
+		// TODO: Who deletes this buffer?
+
 		const wchar_t* pResult = nullptr;
 		pResult = GetClipboardTextW();
-		
-		// TODO: Create a C style string instead of using a C++ string here.
-		std::string AnsiResult = Auxiliary::ConvertWString( std::wstring( pResult ) );
 
-		return AnsiResult.data();
+		int size = ::WideCharToMultiByte( CP_UTF8, 0, pResult, -1, NULL, 0, NULL, NULL );
+		char* pBuffer = new char[ size ];
+		::WideCharToMultiByte( CP_UTF8, 0, pResult, -1, pBuffer, size, NULL, NULL );
+
+		return pBuffer;
 	}
 
 	const wchar_t* RubyWindowsBackend::GetClipboardTextW()

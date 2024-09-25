@@ -303,13 +303,13 @@ namespace Saturn {
 		return m_pDefaultBackend->CreateVulkanWindowSurface( Instance, pOutSurface );
 	}
 
-	void RubyWindow::SetSize( uint32_t width, uint32_t height )
+	void RubyWindow::IntrnlSetSize( uint32_t width, uint32_t height )
 	{
 		m_Width = width;
 		m_Height = height;
 	}
 
-	void RubyWindow::SetPos( int x, int y )
+	void RubyWindow::IntrnlSetPos( int x, int y )
 	{
 		m_Position.x = x;
 		m_Position.y = y;

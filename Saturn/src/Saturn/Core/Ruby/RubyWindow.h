@@ -139,10 +139,10 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// Internal Functions. Do not call.
 
-		void SetSize( uint32_t width, uint32_t height );
-		void SetPos( int x, int y );
+		void IntrnlSetSize( uint32_t width, uint32_t height );
+		void IntrnlSetPos( int x, int y );
 
-		void SetKeyDown( RubyKey key, bool value )
+		void IntrnlSetKeyDown( RubyKey key, bool value )
 		{
 			if( value )
 				m_Keys.insert( key );
@@ -150,25 +150,25 @@ namespace Saturn {
 				m_Keys.erase( key );
 		}
 
-		void SetMouseDown( RubyMouseButton button, bool value = true )
+		void IntrnlSetMouseState( RubyMouseButton button, bool pressed = true )
 		{
-			if( value )
+			if( pressed )
 				m_CurrentMouseButton = button;
 			else
 				m_CurrentMouseButton = RubyMouseButton::Unknown;
 		}
 
-		void SetLockedMousePos( const RubyIVec2& Position )
+		void IntrnlSetLockedMousePos( const RubyIVec2& Position )
 		{
 			m_LockedMousePosition = Position;
 		}
 
-		void SetLastMousePos( const RubyIVec2& Position )
+		void IntrnlSetLastMousePos( const RubyIVec2& Position )
 		{
 			m_LastMousePosition = Position;
 		}
 
-		void ClearKeysAndMouse()
+		void IntrnlClearKeysAndMouse()
 		{
 			m_Keys.clear();
 			m_CurrentMouseButton = RubyMouseButton::Unknown;

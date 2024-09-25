@@ -135,7 +135,7 @@ void main()
     vi += 0.7;
     dist = clamp( vi, 0.0, 1.0 );
 
-	GeometryPassColor *= dist;
+	//GeometryPassColor *= dist;
 
 	FinalColor = vec4( GeometryPassColor, 1.0 );
 }

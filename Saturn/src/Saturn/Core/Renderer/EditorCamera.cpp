@@ -79,10 +79,11 @@ namespace Saturn {
 			return;
 		}
 
-		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !Input::Get().KeyPressed( RubyKey::Alt ) )
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
 		{
 			m_CameraMode = CameraMode::FLYCAM;
 			DisableMouse();
+
 			const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
 
 			const float speed = GetCameraSpeed();
