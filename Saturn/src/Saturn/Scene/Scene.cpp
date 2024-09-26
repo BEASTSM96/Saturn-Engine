@@ -632,17 +632,26 @@ namespace Saturn {
 		return newEntity;
 	}
 
-	void Scene::DeleteEntity( Ref<Entity> entity )
+	void Scene::DeleteEntity( Ref<Entity> entity, bool deleteChildren /*=true*/ )
 	{
 		for( auto& rChild : entity->GetChildren() )
 		{
 			auto child = FindEntityByID( rChild );
 
-			DeleteEntity( child );
+			if( deleteChildren )
+			{
+				DeleteEntity( child, true );
+			}
+			else
+			{
+				child->SetParent( 0 );
+			}
 		}
 
 		m_EntityIDMap.erase( entity->GetHandle() );
 		m_Registry.destroy( entity->GetHandle() );
+		
+		entity->Invalidate();
 	}
 
 	void Scene::CopyScene( Ref<Scene>& NewScene )
@@ -695,8 +704,12 @@ namespace Saturn {
 
 		// Init new scene camera
 		m_MainCameraEntity = GetMainCameraEntity( true );
-		auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
-		rCameraComponent.Camera.SetFOV( rCameraComponent.Fov );
+
+		if( m_MainCameraEntity )
+		{
+			auto& rCameraComponent = m_MainCameraEntity->GetComponent<CameraComponent>();
+			rCameraComponent.Camera.SetFOV( rCameraComponent.Fov );
+		}
 	}
 
 	void Scene::UpdateAudioListeners() 

@@ -55,6 +55,7 @@ namespace Saturn {
 	class PhysicsScene;
 	class SClass;
 	class SceneRenderer;
+	class PlayerInputController;
 
 	struct TransformComponent;
 	struct RaycastHitResult;
@@ -168,7 +169,7 @@ namespace Saturn {
 		void OnRenderRuntime( Timestep ts, SceneRenderer& rSceneRenderer );
 
 		Ref<Entity> DuplicateEntity( Ref<Entity> entity, Ref<Entity> parent = nullptr );
-		void DeleteEntity( Ref<Entity> entity );
+		void DeleteEntity( Ref<Entity> entity, bool deleteChildren = true );
 		
 		void OnUpdate( Timestep ts );
 		void OnUpdatePhysics( Timestep ts );
@@ -245,9 +246,15 @@ namespace Saturn {
 		void DestroyAudioPlayers();
 		void UpdateAudioListeners();
 
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
 		void MarkDirty() { m_Dirty = true; }
 		void CleanDirty() { m_Dirty = false; }
 		bool IsDirty() const { return m_Dirty; }
+#else
+		void MarkDirty() {}
+		void CleanDirty() {}
+		bool IsDirty() const { return false; }
+#endif
 
 		static void   SetActiveScene( Scene* pScene );
 		static Scene* GetActiveScene();
@@ -321,15 +328,15 @@ namespace Saturn {
 
 	private:
 		std::unordered_map<entt::entity, Ref<Entity>> m_EntityIDMap;
-
 		entt::registry m_Registry;
 
 		entt::entity m_SceneEntity{ entt::null };
+		
+#if !defined(SAT_DIST)
 		std::vector< Ref<Entity> > m_SelectedEntities;
-
+#endif
 		Lights m_Lights;
-
-		Ref<Entity> m_MainCameraEntity;
+		Ref<Entity> m_MainCameraEntity = nullptr;
 
 #if defined( SAT_ENABLE_GAMETHREAD )
 		std::mutex m_Mutex;
@@ -342,6 +349,7 @@ namespace Saturn {
 
 		UUID m_InternalID;
 		bool m_Dirty = false;
+
 	private:
 
 		friend class Entity;

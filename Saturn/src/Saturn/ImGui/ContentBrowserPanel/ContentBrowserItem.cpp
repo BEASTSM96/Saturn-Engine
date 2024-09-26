@@ -167,7 +167,7 @@ namespace Saturn {
 			if( m_IsSelected )
 			{
 				// Draw a highlight around the button.
-				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll );
+				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll, 2.5f );
 			}
 		}
 		else
@@ -244,7 +244,7 @@ namespace Saturn {
 			if( m_IsSelected )
 			{
 				// Draw a highlight around the button.
-				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll );
+				pDrawList->AddRect( TopLeft, BottomRight, ImGui::GetColorU32( ImGuiCol_ButtonHovered ), 5.0f, ImDrawFlags_RoundCornersAll, 2.5f );
 			}
 
 			HandleDragDrop();

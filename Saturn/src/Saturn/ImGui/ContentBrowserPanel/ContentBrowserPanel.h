@@ -65,6 +65,8 @@ namespace Saturn {
 
 		virtual void ResetPath( const std::filesystem::path& rPath ) override;
 
+		void BrowseToItem( const std::filesystem::path& rPath, AssetID id );
+
 	private:
 		virtual void UpdateFiles( bool clear = false ) override;
 		virtual void OnItemSelected( ContentBrowserItem* pItem, bool clicked ) override;
@@ -83,7 +85,7 @@ namespace Saturn {
 		void AssetsPopupContextMenu();
 		void ScriptsPopupContextMenu();
 
-		void OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event );
+		void OnFilewatchEvent( const std::wstring& rPath, const filewatch::Event Event );
 
 		Ref<ContentBrowserItem> GetActiveHoveredItem();
 
@@ -113,7 +115,7 @@ namespace Saturn {
 
 		SClassMetadata m_SelectedMetadata = {};
 
-		filewatch::FileWatch<std::string>* m_Watcher = nullptr;
+		filewatch::FileWatch<std::wstring>* m_Watcher = nullptr;
 
 	private:
 		bool m_ShowAssetImportPopup = false;

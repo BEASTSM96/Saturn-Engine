@@ -497,7 +497,7 @@ namespace Saturn {
 		}
 	}
 
-	void ContentBrowserPanel::OnFilewatchEvent( const std::string& rPath, const filewatch::Event Event )
+	void ContentBrowserPanel::OnFilewatchEvent( const std::wstring& rPath, const filewatch::Event Event )
 	{
 		switch( Event )
 		{
@@ -1198,13 +1198,45 @@ namespace Saturn {
 		m_FirstFolder = m_CurrentViewModeDirectory;
 
 		delete m_Watcher;
-		m_Watcher = new filewatch::FileWatch<std::string>( m_RootPath.string(),
-			[this]( const std::string& path, const filewatch::Event event )
+		m_Watcher = new filewatch::FileWatch<std::wstring>( m_RootPath.wstring(),
+			[this]( const std::wstring& path, const filewatch::Event event )
 			{
 				OnFilewatchEvent( path, event );
 			} );
 
 		UpdateFiles( true );
+	}
+
+	void ContentBrowserPanel::BrowseToItem( const std::filesystem::path& rPath, AssetID id )
+	{
+		if( id == 0 || rPath.empty() )
+			return;
+
+		// First, browse to where the item is located as we may need to update the files
+		// Then, find item and select it.
+
+		auto fullPath = Project::GetActiveProject()->FilepathAbs( rPath.parent_path() );
+
+		// Force an update here don't wait until next frame
+		if( m_CurrentPath != fullPath )
+		{
+			m_CurrentPath /= fullPath;
+		
+			ClearSelection();
+			ClearSearchQuery();
+			m_Searching = false;
+
+			UpdateFiles( true );
+		}
+
+		for( auto& rItem : m_Files )
+		{
+			if( rItem->GetAssetID() == id )
+			{
+				rItem->Select();
+				break;
+			}
+		}
 	}
 
 	void ContentBrowserPanel::GetContentFiles( bool clear )

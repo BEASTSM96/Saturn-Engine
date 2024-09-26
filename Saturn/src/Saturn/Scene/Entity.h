@@ -79,45 +79,27 @@ namespace Saturn {
 			m_Scene->RemoveComponent<T>( m_EntityHandle );
 		}
 
+	public:
 		[[nodiscard]] bool Valid()
 		{
-			return m_Scene->m_Registry.valid( m_EntityHandle );
+			return m_EntityHandle != entt::null || m_Scene->m_Registry.valid( m_EntityHandle );
 		}
 
 		[[nodiscard]] bool Valid() const
 		{
-			return m_Scene->m_Registry.valid( m_EntityHandle );
+			return m_EntityHandle != entt::null || m_Scene->m_Registry.valid( m_EntityHandle );
 		}
 
-		Scene& GetScene() { return *m_Scene; }
-		const Scene& GetScene() const { return *m_Scene; }
+		Scene* GetScene() { return m_Scene; }
+		const Scene* GetScene() const { return m_Scene; }
 
 		glm::mat4 Transform() { return m_Scene->m_Registry.get<TransformComponent>( m_EntityHandle ).GetTransform(); }
 		
-		const std::string& Name() const { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
-		std::string& Name() { return m_Scene->m_Registry.get<TagComponent>( m_EntityHandle ).Tag; }
-
 		void SetName( const std::string& rName );
 
-		entt::entity GetHandle() { return m_EntityHandle; }
+		const entt::entity GetHandle()       { return m_EntityHandle; }
 		const entt::entity GetHandle() const { return m_EntityHandle; }
 
-	public:
-		operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr && m_Scene->m_Registry.valid( m_EntityHandle ); }
-		operator entt::entity() const { return m_EntityHandle; }
-		operator uint32_t () const { return ( uint32_t ) m_EntityHandle; }
-
-		bool operator==( const Entity& other ) const
-		{
-			return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
-		}
-
-		bool operator!=( const Entity& other ) const
-		{
-			return !( *this == other );
-		}
-
-	public:
 		UUID GetUUID() { return GetComponent<IdComponent>().ID; }
 		[[nodiscard]] const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
@@ -139,6 +121,35 @@ namespace Saturn {
 		
 		[[nodiscard]] bool HasParent()   { return GetComponent<RelationshipComponent>().Parent != 0; }
 		[[nodiscard]] bool HasChildren() { return GetComponent<RelationshipComponent>().ChildrenID.size() > 0; }
+		
+		[[nodiscard]] bool IsSibling( Ref<Entity>& rOther ) 
+		{
+			auto& rRc = GetComponent<RelationshipComponent>(); 
+			auto& rOtherRc = rOther->GetComponent<RelationshipComponent>();
+		
+			return rRc.Parent == rOtherRc.Parent; 
+		}
+
+		[[nodiscard]] bool IsDescendant( Ref<Entity>& rOther )
+		{
+			auto& rOtherRc = rOther->GetComponent<RelationshipComponent>();
+
+			return rOtherRc.Parent == GetUUID();
+		}
+
+	public:
+		operator entt::entity() const { return m_EntityHandle; }
+		operator uint32_t() const { return ( uint32_t ) m_EntityHandle; }
+
+		bool operator==( const Entity& other ) const
+		{
+			return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
+		}
+
+		bool operator!=( const Entity& other ) const
+		{
+			return !( *this == other );
+		}
 
 	public:
 		static void Serialise( const Ref<Entity>& rObject, std::ofstream& rStream );
@@ -148,6 +159,12 @@ namespace Saturn {
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 
+	private:
+		void Invalidate()
+		{
+			m_EntityHandle = entt::null;
+		}
+		
 	private:
 		friend class Scene;
 		friend class Prefab;

@@ -223,6 +223,16 @@ namespace Saturn {
 	{
 		SAT_PF_EVENT();
 
+		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
+			m_StartedRightClickInViewport = true;
+
+		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
+			m_StartedRightClickInViewport = false;
+
+		Input::Get().SetCanSetCursorMode( m_RuntimeScene == nullptr ? m_AllowCameraEvents : m_MouseOverViewport );
+
+		///////////////////////////////
+
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
 
 		if( m_RequestRuntime )
@@ -233,6 +243,8 @@ namespace Saturn {
 				Scene::SetActiveScene( m_RuntimeScene.Get() );
 
 				m_EditorScene->CopyScene( m_RuntimeScene );
+
+				Input::Get().SetCanSetCursorMode( true );
 
 				m_RuntimeScene->OnRuntimeStart();
 
@@ -274,14 +286,6 @@ namespace Saturn {
 			m_EditorScene->OnUpdate( time );
 			m_EditorScene->OnRenderEditor( m_EditorCamera, time, Application::Get().PrimarySceneRenderer() );
 		}
-
-		if( Input::Get().MouseButtonPressed( RubyMouseButton::Right ) && !m_StartedRightClickInViewport && m_ViewportFocused && m_MouseOverViewport )
-			m_StartedRightClickInViewport = true;
-
-		if( !Input::Get().MouseButtonPressed( RubyMouseButton::Right ) )
-			m_StartedRightClickInViewport = false;
-
-		Input::Get().SetCanSetCursorMode( m_AllowCameraEvents );
 
 		// Render scenes in other asset viewers
 		AssetViewer::Update( time );
@@ -378,13 +382,15 @@ namespace Saturn {
 
 	void EditorLayer::OnEvent( RubyEvent& rEvent )
 	{
-		if( m_MouseOverViewport )
-			m_EditorCamera.OnEvent( rEvent );
+		// If the mouse is over the viewport allow for the scroll event to happen
+		// The scroll event does not care if the camera is active or not.
+		if( m_MouseOverViewport ) m_EditorCamera.OnEvent( rEvent );
+		
+		if( false )	m_FallbackCamera.OnEvent( rEvent );
 
 		AssetViewer::ProcessEvent( rEvent );
 
-		if( rEvent.Type == RubyEventType::KeyPressed )
-			OnKeyPressed( (RubyKeyEvent&)rEvent );
+		if( rEvent.Type == RubyEventType::KeyPressed ) OnKeyPressed( (RubyKeyEvent&)rEvent );
 	}
 
 	void EditorLayer::SaveFileAs()
@@ -490,22 +496,22 @@ namespace Saturn {
 			} break;
 
 			case RubyKey::Q:
-				if( m_AllowCameraEvents || m_ViewportFocused )
-					m_GizmoOperation = -1;
+				if( m_MouseOverViewport && !m_StartedRightClickInViewport )
+					m_GizmoOperation = 0;
 				break;
 	
 			case RubyKey::W:
-				if( m_AllowCameraEvents || m_ViewportFocused )
+				if( m_MouseOverViewport && !m_StartedRightClickInViewport )
 					m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 				break;
-			
+
 			case RubyKey::E:
-				if( m_AllowCameraEvents || m_ViewportFocused )
+				if( m_MouseOverViewport && !m_StartedRightClickInViewport )
 					m_GizmoOperation = ImGuizmo::OPERATION::ROTATE;
 				break;
 			
 			case RubyKey::R:
-				if( m_AllowCameraEvents || m_ViewportFocused )
+				if( m_MouseOverViewport && !m_StartedRightClickInViewport )
 					m_GizmoOperation = ImGuizmo::OPERATION::SCALE;
 				break;
 		}
@@ -617,6 +623,21 @@ namespace Saturn {
 				{
 					ShouldSaveProject = true;
 				}
+
+				{
+					Auxiliary::ScopedDisabledFlag disabledFlag( rConfig.StartupSceneID == 0 );
+
+					if( Auxiliary::ImageButton( EditorIcons::GetIcon( "NoIcon" ), { 24.0f, 24.0f } ) )
+					{
+						Ref<Asset> target = AssetManager::Get().FindAsset( rConfig.StartupSceneID );
+
+						if( target )
+						{
+							Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+							contentBrowserPanel->BrowseToItem( target->Path, rConfig.StartupSceneID );
+						}
+					}
+				}
 			}
 			ImGui::EndHorizontal();
 
@@ -639,6 +660,21 @@ namespace Saturn {
 					ActiveProject->SetDefaultMaterialAsset( defaultMaterialID );
 					ShouldSaveProject = true;
 				}
+
+				{
+					Auxiliary::ScopedDisabledFlag disabledFlag( defaultMaterialID == 0 );
+
+					if( Auxiliary::ImageButton( EditorIcons::GetIcon( "NoIcon" ), { 24.0f, 24.0f } ) )
+					{
+						Ref<Asset> target = AssetManager::Get().FindAsset( defaultMaterialID );
+
+						if( target )
+						{
+							Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+							contentBrowserPanel->BrowseToItem( target->Path, defaultMaterialID );
+						}
+					}
+				}
 			}
 			ImGui::EndHorizontal();
 
@@ -658,6 +694,21 @@ namespace Saturn {
 				{
 					ActiveProject->SetDefaultPhysicsMaterialAsset( defaultMaterialID );
 					ShouldSaveProject = true;
+				}
+
+				{
+					Auxiliary::ScopedDisabledFlag disabledFlag( defaultMaterialID == 0 );
+
+					if( Auxiliary::ImageButton( EditorIcons::GetIcon( "NoIcon" ), { 24.0f, 24.0f } ) )
+					{
+						Ref<Asset> target = AssetManager::Get().FindAsset( defaultMaterialID );
+
+						if( target )
+						{
+							Ref<ContentBrowserPanel> contentBrowserPanel = m_PanelManager->GetPanel<ContentBrowserPanel>();
+							contentBrowserPanel->BrowseToItem( target->Path, defaultMaterialID );
+						}
+					}
 				}
 			}
 			ImGui::EndHorizontal();
@@ -1021,54 +1072,13 @@ namespace Saturn {
 
 			ImGui::PushStyleColor( ImGuiCol_Text, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
 			ImGui::PushFont( italicsFont );
-			ImGui::Text( "Saturn Engine Version: " );
-			ImGui::SameLine();
-			ImGui::Text( SAT_CURRENT_VERSION_STRING );
+			ImGui::Text( "Saturn Engine Version: %s", SAT_CURRENT_VERSION_STRING );
 			ImGui::PopFont();
 			ImGui::PopStyleColor();
 
 			ImGui::PushStyleColor( ImGuiCol_Separator, ImVec4{ 0.7f, 0.7f, 0.7f, 0.7f } );
 			ImGui::Separator();
 			ImGui::PopStyleColor();
-
-			ImGui::BeginVertical( "##MainSettings" );
-
-			ImGui::Spring();
-
-			ImGui::BeginHorizontal( "##MSAA_Horiz" );
-
-			ImGui::Text( "Default Editor MSAA Samples:" );
-			ImGui::Spring();
-
-			// TODO: Come back to this.
-
-			const char* items[] = { "0x", "1x", "2x", "4x", "8x", "16x", "32x", "64x" };
-			static VkSampleCountFlagBits count;
-			if( ImGui::BeginCombo( "##samples", "", ImGuiComboFlags_NoPreview ) )
-			{
-				auto maxUsable = VulkanContext::Get().GetMaxUsableMSAASamples();
-
-				for( int i = 1; i < IM_ARRAYSIZE( items ); i++ )
-				{
-					if( i > maxUsable )
-						break;
-
-					if( ImGui::Selectable( items[ i ] ) )
-					{
-
-					}
-				}
-
-				ImGui::EndCombo();
-			}
-
-			ImGui::Button( "Test" );
-
-			ImGui::EndHorizontal();
-
-			ImGui::Spring();
-
-			ImGui::EndVertical();
 
 			ImGui::End();
 		}
@@ -1612,6 +1622,7 @@ namespace Saturn {
 			Application::Get().PrimarySceneRenderer().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 			Renderer2D::Get().SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 			m_EditorCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
+			m_FallbackCamera.SetViewportSize( ( uint32_t ) m_ViewportSize.x, ( uint32_t ) m_ViewportSize.y );
 		}
 
 		ImGui::PushID( "VIEWPORT_IMAGE" );
@@ -1628,8 +1639,7 @@ namespace Saturn {
 				std::filesystem::path p = path;
 				Ref<Asset> asset = AssetManager::Get().FindAsset( p );
 
-				if( asset )
-					OpenFile( asset->ID );
+				if( asset ) OpenFile( asset->ID );
 			}
 
 			if( auto payload = ImGui::AcceptDragDropPayload( "CONTENT_BROWSER_ITEM_PREFAB" ) )
@@ -1686,7 +1696,6 @@ namespace Saturn {
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		m_MouseOverViewport = ImGui::IsWindowHovered();
-
 		m_AllowCameraEvents = ImGui::IsMouseHoveringRect( minBound, maxBound ) && m_ViewportFocused || m_StartedRightClickInViewport;
 
 		Ref<SceneHierarchyPanel> hierarchyPanel = m_PanelManager->GetPanel<SceneHierarchyPanel>();
@@ -1714,7 +1723,7 @@ namespace Saturn {
 
 		///////////////////
 
-		if( selectedEntities.size() )
+		if( selectedEntities.size() && m_GizmoOperation != 0 )
 		{
 			ImGuizmo::SetOrthographic( false );
 			ImGuizmo::SetDrawlist();

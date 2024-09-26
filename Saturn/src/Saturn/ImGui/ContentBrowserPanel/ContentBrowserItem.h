@@ -79,6 +79,7 @@ namespace Saturn {
 		bool IsSelected()    const   { return m_IsSelected;    }
 		bool MultiSelected() const   { return m_MultiSelected; }
 		bool IsRenaming()    const   { return m_IsRenaming;    }
+		AssetID GetAssetID() const   { if( m_Asset ) return m_Asset->ID; else return 0; }
 		void CanEverDrag( bool val ) { m_CanEverDrag = val;    }
 
 		std::filesystem::path& Filename() { return m_Filename; }

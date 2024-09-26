@@ -277,6 +277,8 @@ namespace Saturn {
 				ImGui::BeginHorizontal( (void*)entity.Get() );
 				ImGui::Text( "%s -- %s", rTag.c_str(), isPrefab ? "Prefab or Class Instance" : "Spawned");
 				ImGui::Spring();
+				ImGui::Text( "ECS Handle: %i", entity->GetHandle() );
+				ImGui::Spring();
 				ImGui::EndHorizontal();
 
 				ImGui::EndTooltip();
