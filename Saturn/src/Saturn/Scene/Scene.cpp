@@ -146,6 +146,7 @@ namespace Saturn {
 		return nullptr;
 	}
 
+#if defined(SAT_DEBUG) || defined(SAT_RELEASE)
 	void Scene::AddSelectedEntity( Ref<Entity> entity )
 	{
 		m_SelectedEntities.push_back( entity );
@@ -160,6 +161,19 @@ namespace Saturn {
 	{
 		m_SelectedEntities.clear();
 	}
+#else
+	void Scene::AddSelectedEntity( Ref<Entity> entity )
+	{
+	}
+
+	void Scene::DeselectEntity( Ref<Entity> entity )
+	{
+	}
+
+	void Scene::ClearSelectedEntities()
+	{
+	}
+#endif
 
 	void Scene::OnUpdate( Timestep ts )
 	{
@@ -316,6 +330,7 @@ namespace Saturn {
 			}
 		}
 
+#if !defined(SAT_DIST)
 		// Physics Colliders (selected meshes only)
 		{
 			for( auto& rSelectedEntity : m_SelectedEntities )
@@ -338,6 +353,7 @@ namespace Saturn {
 				}
 			}
 		}
+#endif
 
 		// Static meshes
 		{

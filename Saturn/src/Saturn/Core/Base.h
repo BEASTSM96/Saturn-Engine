@@ -61,9 +61,9 @@ consteval auto BIT( Ty x ) { return 1 << x; }
 template<typename Ty>
 consteval auto SAT_MAKE_VERSION( Ty major, Ty minor, Ty patch ) { return ( ( ( ( unsigned int ) ( major ) ) << 22 ) | ( ( ( unsigned int ) ( minor ) ) << 12 ) | ( ( unsigned int ) ( patch ) ) ); }
 
-// Current version is Alpha 0.1.2 (Alpha 1.2)
-constexpr auto SAT_CURRENT_VERSION = SAT_MAKE_VERSION( 0, 1, 2 );
-constexpr auto SAT_CURRENT_VERSION_STRING = "0.1.2";
+// Current version is Alpha 0.1.3 (Alpha 1.3)
+constexpr auto SAT_CURRENT_VERSION = SAT_MAKE_VERSION( 0, 1, 3 );
+constexpr auto SAT_CURRENT_VERSION_STRING = "0.1.3";
 
 #define SAT_DECODE_VERSION(source, major, minor, patch) \
 patch = (source) & 0xFF; \
