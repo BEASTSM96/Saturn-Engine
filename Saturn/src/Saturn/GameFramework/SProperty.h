@@ -41,4 +41,10 @@ namespace Saturn {
 		size_t Size;
 	};
 
+	enum SPropertyFlags 
+	{
+		None,
+		EditInEditor,
+		ReadOnlyInEditor
+	};
 }
