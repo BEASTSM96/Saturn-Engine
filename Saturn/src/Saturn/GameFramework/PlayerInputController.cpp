@@ -50,8 +50,6 @@ namespace Saturn {
 
 	void PlayerInputController::Update()
 	{
-		SAT_PF_EVENT();
-
 		if( !m_ActionMap.size() )
 			return;
 

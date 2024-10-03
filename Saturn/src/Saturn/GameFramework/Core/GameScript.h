@@ -42,12 +42,24 @@
 private: \
 	x& operator=(x&&); \
 	x& operator=(const x&); \
+	friend class x##Int; \
+public: \
+	typedef x ThisClass; \
+	typedef BaseClass Super; \
+	typedef x##Int InternalClass; \
+
+#define SAT_DECLARE_CLASS_NO_INTER( x, BaseClass ) \
+private: \
+	x& operator=(x&&); \
+	x& operator=(const x&); \
 public: \
 	typedef x ThisClass; \
 	typedef BaseClass Super; \
 
 #define SAT_DECLARE_CLASS_MOVE( x, BaseClass ) \
+private: \
+	friend class x##Int;\
 public: \
 	typedef x ThisClass; \
 	typedef BaseClass Super; \
-
+	typedef x##Int InternalClass; \

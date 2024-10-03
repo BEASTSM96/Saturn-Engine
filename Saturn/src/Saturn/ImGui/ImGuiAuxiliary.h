@@ -59,6 +59,25 @@ namespace Saturn::Auxiliary {
 		}
 	};
 
+	class ScopedStyleColor
+	{
+	public:
+		ScopedStyleColor( ImGuiCol_ color, const ImVec4& rValue )
+		{
+			ImGui::PushStyleColor( color, rValue );
+		}
+
+		ScopedStyleColor( ImGuiCol_ color, ImU32 value )
+		{
+			ImGui::PushStyleColor( color, value );
+		}
+
+		~ScopedStyleColor()
+		{
+			ImGui::PopStyleColor();
+		}
+	};
+
 	class ScopedItemFlag
 	{
 	public:

@@ -29,15 +29,11 @@
 #include "sppch.h"
 #include "GameModule.h"
 
-#include "Saturn/Core/App.h"
-#include "Saturn/Scene/Entity.h"
-
-#include "Saturn/Project/Project.h"
-
-#include "GameScript.h"
-
-#include "SourceFileTemplateHelper.h"
 #include "ClassMetadataHandler.h"
+
+#include "Saturn/Scene/Entity.h"
+#include "Saturn/Project/Project.h"
+#include "Saturn/Core/OptickProfiler.h"
 
 namespace Saturn {
 
@@ -87,7 +83,7 @@ namespace Saturn {
 		InitModuleFn initModFn = ( InitModuleFn ) m_GameModule->m_Library.GetSymbol( "InitializeModule" );
 
 		if( initModFn )
-			( initModFn ) ( Project::GetActiveProject().Get() );
+			( initModFn ) ( Project::GetActiveProject().Get(), tracy::GetProfilerDataPtr() );
 #endif
 	}
 

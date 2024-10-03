@@ -574,6 +574,17 @@ namespace Saturn {
 					} break;
 				}
 			}
+
+			if( Input::Get().KeyPressed( RubyKey::Alt ) )
+			{
+				switch( rEvent.GetScancode() )
+				{
+					case RubyKey::F5:
+					{
+						HotReloadGame();
+					} break;
+				}
+			}
 		}
 
 		return true;
@@ -952,7 +963,11 @@ namespace Saturn {
 
 	void EditorLayer::HotReloadGame()
 	{
-		SAT_CORE_ASSERT(false, "EditorLayer::HotReloadGame not implemented.");
+	//	SAT_CORE_ASSERT(false, "EditorLayer::HotReloadGame not implemented.");
+
+		SAT_CORE_INFO( "Begin hot reload" );
+
+		m_GameModule->Reload();
 	}
 
 	void EditorLayer::DrawAssetRegistryDebug()
@@ -1874,18 +1889,20 @@ namespace Saturn {
 		ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f } );
 		ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 5.0f * 2.0f, 0 ) );
 
-		if( Auxiliary::ImageButton( EditorIcons::GetIcon( "NoIcon" ), ImVec2( 24.0f, 24.0f ) ) )
+		if( Auxiliary::ImageButton( m_SyncTexture, ImVec2( 24.0f, 24.0f ) ) )
 		{
-			ImGui::OpenPopup( "RuntimeSettings" );
+			HotReloadGame();
+		}
+
+		if( ImGui::BeginItemTooltip() )
+		{
+			ImGui::Text( "Hot Reload (Alt+F5)" );
+
+			ImGui::EndTooltip();
 		}
 
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar();
-
-		if( ImGui::BeginPopup( "RuntimeSettings" ) )
-		{
-			ImGui::EndPopup();
-		}
 
 		ImGui::Spring();
 		ImGui::EndHorizontal();

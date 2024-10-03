@@ -79,6 +79,8 @@ project "Saturn"
 		"GLM_ENABLE_EXPERIMENTAL",
 		"SATURN_SS_IMPORT",
 		"TRACY_ENABLE",
+		"TRACY_DELAYED_INIT",
+		"TRACY_MANUAL_LIFETIME",
 		"SAT_RBY_INCLUDE_VULKAN"
 	}
 
@@ -210,7 +212,7 @@ project "Saturn"
 			symbols "off"
 
 			removelinks { "Tracy" }
-			removedefines { "TRACY_ENABLE","SATURN_SS_IMPORT" }
+			removedefines { "TRACY_ENABLE", "TRACY_DELAYED_INIT", "TRACY_MANUAL_LIFETIME", "SATURN_SS_IMPORT" }
 			removefiles { "%{prj.name}/vendor/ImGuizmo/src/**.cpp", "%{prj.name}/vendor/ImGuizmo/src/**.h" }
 
 			defines { "SATURN_SS_STATIC" }

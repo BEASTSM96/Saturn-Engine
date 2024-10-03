@@ -51,10 +51,10 @@ namespace Saturn {
 
 		Entity* CreateEntity( const std::string& rClassName );
 		
+		void Reload();
 	private:
 		void Load( bool reload = false );
 		void Unload();
-		void Reload();
 
 	private:
 		Ref<Module> m_GameModule;

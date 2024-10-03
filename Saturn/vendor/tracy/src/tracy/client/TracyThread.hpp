@@ -43,7 +43,7 @@ public:
 
     ~Thread()
     {
-        WaitForSingleObject( m_hnd, INFINITE );
+        WaitForSingleObject( m_hnd, 100000 );
         CloseHandle( m_hnd );
     }
 

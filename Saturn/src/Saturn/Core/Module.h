@@ -101,5 +101,5 @@ namespace Saturn {
 	};
 
 	// Default Module registration function.
-	typedef void ( __stdcall* InitModuleFn )( Project* );
+	typedef void ( __stdcall* InitModuleFn )( Project* /* active project */, const void* /* tracy profiler data */ );
 }

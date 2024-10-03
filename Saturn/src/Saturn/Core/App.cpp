@@ -63,6 +63,8 @@ namespace Saturn {
 	{
 		SingletonStorage::AddSingleton( this );
 
+		tracy::StartupProfiler();
+
 		// Setup default width and height
 		const RubyMonitor& rPrimaryMonitor = RubyLibrary::Get().GetPrimaryMonitor();
 		uint32_t width = 0, height = 0;
@@ -188,6 +190,8 @@ namespace Saturn {
 		delete m_VulkanContext;
 
 		delete m_Window;
+
+		tracy::ShutdownProfiler();
 	}
 
 	void Application::Close()

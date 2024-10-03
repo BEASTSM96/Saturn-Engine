@@ -1159,6 +1159,21 @@ TRACY_API void ShutdownProfiler()
     RpThreadInitDone = false;
     RpInitDone.store( 0, std::memory_order_release );
 }
+
+TRACY_API void* GetProfilerDataPtr()
+{
+	assert( s_profilerData );
+	return (void*)s_profilerData;
+}
+
+TRACY_API void InitializeModule( const void* pData )
+{
+    ProfilerData* pProfilerData = ( ProfilerData* ) pData;
+
+    if( s_profilerData != pProfilerData )
+        s_profilerData = pProfilerData;
+}
+
 #  else
 static std::atomic<int> profilerDataLock { 0 };
 static std::atomic<ProfilerData*> profilerData { nullptr };

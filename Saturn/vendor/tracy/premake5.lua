@@ -36,12 +36,12 @@ project "Tracy"
 	filter "configurations:Debug"
 		runtime "Debug"
 		symbols "on"
-		defines { "TRACY_ENABLE" }
+		defines { "TRACY_ENABLE", "TRACY_MANUAL_LIFETIME", "TRACY_DELAYED_INIT" }
 
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
-		defines { "TRACY_ENABLE" }
+		defines { "TRACY_ENABLE", "TRACY_MANUAL_LIFETIME", "TRACY_DELAYED_INIT" }
 
 	filter "configurations:Dist"
 		runtime "Release"

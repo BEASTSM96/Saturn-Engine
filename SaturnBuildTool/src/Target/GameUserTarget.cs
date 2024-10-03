@@ -89,6 +89,9 @@ namespace SaturnBuildTool
             Links.Add("Saturn-SharedStorage.lib");
 
             PreprocessorDefines.Add("SATURN_SS_IMPORT");
+            PreprocessorDefines.Add("TRACY_DELAYED_INIT");
+            PreprocessorDefines.Add("TRACY_MANUAL_LIFETIME");
+            PreprocessorDefines.Add("TRACY_ENABLE");
 
             LibraryPaths.Add( libPath );
             LibraryPaths.Add( ssBinDir );

@@ -50,6 +50,9 @@ namespace tracy
 #if defined(TRACY_DELAYED_INIT) && defined(TRACY_MANUAL_LIFETIME)
 TRACY_API void StartupProfiler();
 TRACY_API void ShutdownProfiler();
+
+TRACY_API void* GetProfilerDataPtr();
+TRACY_API void InitializeModule( const void* pData );
 #endif
 
 class GpuCtx;
