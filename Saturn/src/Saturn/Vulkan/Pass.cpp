@@ -115,13 +115,11 @@ namespace Saturn {
 				{
 					// This is a hack.
 					// We only do this because the swapchain pass only has two attachments at the start, but when we add the MSAA pass we add it before the color attachment.
-					m_ColorAttachments.push_back( { .attachment = ( uint32_t ) i + 1, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL } );
+					m_ColorAttachments.emplace_back( ( uint32_t ) i + 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
 				}
 				else
 				{
-					VkAttachmentReference Attachment = { .attachment = ( uint32_t ) i, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-
-					m_ColorAttachments.push_back( Attachment );
+					m_ColorAttachments.emplace_back( ( uint32_t ) i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
 				}
 
 				m_ClearValues[ i ].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
@@ -264,18 +262,16 @@ namespace Saturn {
 		if ( IsColorFormat( format ) )
 		{
 			// Add our multisample attachment.
-			rAttachments.push_back(
-				{
-						.flags = 0,
-						.format = VK_FORMAT_B8G8R8A8_UNORM,
-						.samples = m_PassSpec.MSAASamples,
-						.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-						.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-						.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-						.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-						.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-						.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-				} );
+			rAttachments.emplace_back(
+						0,
+						VK_FORMAT_B8G8R8A8_UNORM,
+						m_PassSpec.MSAASamples,
+						VK_ATTACHMENT_LOAD_OP_CLEAR,
+						VK_ATTACHMENT_STORE_OP_DONT_CARE,
+						VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+						VK_ATTACHMENT_STORE_OP_DONT_CARE,
+						VK_IMAGE_LAYOUT_UNDEFINED,
+						VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 		}
 	}
 

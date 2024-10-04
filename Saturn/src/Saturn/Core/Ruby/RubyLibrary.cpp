@@ -87,6 +87,7 @@ namespace Saturn {
 		if( m_Moniters.size() != Monitors )
 		{
 			m_Moniters.clear();
+			m_Moniters.reserve( static_cast<size_t>( Monitors ) );
 
 #if defined(_WIN32)
 			LPARAM userData = (LPARAM)this;

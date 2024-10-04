@@ -90,17 +90,16 @@ namespace Saturn {
 		delete[] pData;
 
 		std::vector<VkDescriptorPoolSize> PoolSizes;
-
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 } );
-		PoolSizes.push_back( { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 } );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_SAMPLER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 );
+		PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 );
 
 		for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{

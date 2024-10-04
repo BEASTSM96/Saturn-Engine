@@ -152,7 +152,6 @@ namespace Saturn {
 
 		SetDebugUtilsObjectName( std::string( m_Specification.Name + "/" + VertexName ), ( uint64_t )VertexModule, VK_OBJECT_TYPE_SHADER_MODULE );
 		
-
 		std::vector< VkPipelineShaderStageCreateInfo > ShaderStages;
 		
 		ShaderStages.push_back(
@@ -162,7 +161,6 @@ namespace Saturn {
 				.module = VertexModule,
 				.pName = "main"
 			} );
-
 
 		if( FragmentModule != nullptr )
 		{

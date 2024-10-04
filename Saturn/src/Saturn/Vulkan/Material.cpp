@@ -62,6 +62,8 @@ namespace Saturn {
 		}
 
 		// Intentional copy of shader uniforms.
+		m_Uniforms.reserve( m_Shader->GetUniforms().size() );
+
 		for( auto rUniform : m_Shader->GetUniforms() )
 		{
 			m_Uniforms.push_back( { rUniform.Name, rUniform.Location, rUniform.DataType, rUniform.Size, rUniform.Offset, rUniform.IsPushConstantData } );

@@ -56,10 +56,12 @@ namespace Saturn {
 		m_Height = Application::Get().GetWindow()->GetHeight();
 
 		// Setup Quads
-		m_QuadVertexPositions.push_back( { -0.5f, -0.5f, 0.0f, 1.0f } );
-		m_QuadVertexPositions.push_back( { -0.5f,  0.5f, 0.0f, 1.0f } );
-		m_QuadVertexPositions.push_back( { 0.5f,  0.5f, 0.0f, 1.0f } );
-		m_QuadVertexPositions.push_back( { 0.5f, -0.5f, 0.0f, 1.0f } );
+		m_QuadVertexPositions.reserve( 4 );
+
+		m_QuadVertexPositions.emplace_back( -0.5f, -0.5f, 0.0f, 1.0f );
+		m_QuadVertexPositions.emplace_back( -0.5f,  0.5f, 0.0f, 1.0f );
+		m_QuadVertexPositions.emplace_back( 0.5f,  0.5f, 0.0f, 1.0f  );
+		m_QuadVertexPositions.emplace_back( 0.5f, -0.5f, 0.0f, 1.0f  );
 
 		// Setup vertex buffer
 		m_QuadVertexBuffers.resize( MAX_FRAMES_IN_FLIGHT );

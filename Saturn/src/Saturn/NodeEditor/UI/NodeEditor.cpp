@@ -107,6 +107,8 @@ namespace Saturn {
 	{
 		// Zoom Levels in imgui_node_editor work backwards
 		ImVector<float> zoomLvls;
+		zoomLvls.reserve( 6 );
+
 		zoomLvls.push_back( 0.25f ); // Highest zoom level (least zoomed in)
 		zoomLvls.push_back( 0.5f );
 		zoomLvls.push_back( 0.75f );

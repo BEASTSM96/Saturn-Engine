@@ -255,6 +255,8 @@ namespace Saturn {
 					uint32_t plIndex = 0;
 					Ref<Texture2D> pointLightBillboardTex = EditorIcons::GetIcon( "Billboard_PointLight" );
 
+					m_Lights.PointLights.reserve( points.size() );
+
 					for( const auto& e : points )
 					{
 						auto [transformComponent, lightComponent] = points.get<TransformComponent, PointLightComponent>( e );

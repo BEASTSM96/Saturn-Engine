@@ -177,6 +177,8 @@ namespace Saturn {
 			SAT_CORE_ASSERT( mesh->HasNormals(), "Meshes require normals." );
 
 			// Vertices
+			m_Vertices.reserve( mesh->mNumVertices );
+
 			for( size_t i = 0; i < mesh->mNumVertices; i++ )
 			{
 				StaticVertex vertex;
@@ -204,11 +206,13 @@ namespace Saturn {
 			}
 
 			// Indices
+			m_Indices.reserve( mesh->mNumFaces );
+
 			for( size_t i = 0; i < mesh->mNumFaces; i++ )
 			{
 				SAT_CORE_ASSERT( mesh->mFaces[ i ].mNumIndices == 3, "Mesh must have 3 indices." );
 
-				m_Indices.push_back( { mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] } );
+				m_Indices.emplace_back( mesh->mFaces[ i ].mIndices[ 0 ], mesh->mFaces[ i ].mIndices[ 1 ], mesh->mFaces[ i ].mIndices[ 2 ] );
 			}
 		}
 

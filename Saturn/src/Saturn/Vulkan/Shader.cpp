@@ -26,36 +26,26 @@
 *********************************************************************************************
 */
 
-
 #include "sppch.h"
 #include "Shader.h"
 
 #include "DescriptorSet.h"
 
 #include "VulkanContext.h"
-#include "VulkanDebug.h"
 #include "Renderer.h"
 
 #include "Saturn/Serialisation/RawSerialisation.h"
-
-#include <istream>
-#include <fstream>
-#include <iostream>
 
 #include <shaderc/shaderc.hpp>
 #include <shaderc/shaderc.h>
 
 #include <spirv/spirv_glsl.hpp>
 
-#include <cassert>
-
 #if defined(SAT_DEBUG) || defined(SAT_RELEASE)
 #define SHADER_INFO(...) SAT_CORE_INFO(__VA_ARGS__)
 #else
 #define SHADER_INFO(...)
 #endif
-
-#include "Saturn/Core/Renderer/RenderThread.h"
 
 namespace Saturn {
 	
@@ -335,7 +325,7 @@ namespace Saturn {
 		}
 	}
 
-	void Shader::WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo> ImageInfos, VkDescriptorSet desSet )
+	void Shader::WriteDescriptor( const std::string& rName, std::vector<VkDescriptorImageInfo>& rImageInfos, VkDescriptorSet desSet )
 	{
 		for( auto& [set, descriptorSet] : m_DescriptorSets )
 		{
@@ -343,8 +333,8 @@ namespace Saturn {
 			{
 				if( texture.Name == rName )
 				{
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = rImageInfos.data();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) rImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
@@ -355,8 +345,8 @@ namespace Saturn {
 			{
 				if( texture.Name == rName )
 				{
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = ImageInfos.data();
-					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) ImageInfos.size();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].pImageInfo = rImageInfos.data();
+					descriptorSet.WriteDescriptorSets[ texture.Binding ].descriptorCount = ( uint32_t ) rImageInfos.size();
 					descriptorSet.WriteDescriptorSets[ texture.Binding ].dstSet = desSet;
 
 					vkUpdateDescriptorSets( VulkanContext::Get().GetDevice(), 1, &descriptorSet.WriteDescriptorSets[ texture.Binding ], 0, nullptr );
@@ -774,7 +764,6 @@ namespace Saturn {
 	void Shader::CreateDescriptors()
 	{
 		// Create the descriptor set layout.
-
 		std::vector< VkDescriptorPoolSize > PoolSizes;
 
 		auto pAllocator = VulkanContext::Get().GetVulkanAllocator();
@@ -801,7 +790,7 @@ namespace Saturn {
 
 				pAllocator->AllocateBuffer( BufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, &ub.Buffer );
 
-				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 250 } );
+				PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 250 );
 
 				Bindings.push_back( Binding );
 
@@ -830,7 +819,7 @@ namespace Saturn {
 				Binding.stageFlags = sb.Location == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : sb.Location == ShaderType::All ? VK_SHADER_STAGE_ALL : sb.Location == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
 				Binding.pImmutableSamplers = nullptr;
 
-				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 250 } );
+				PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 250 );
 
 				Bindings.push_back( Binding );
 
@@ -859,7 +848,7 @@ namespace Saturn {
 				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
 				Binding.pImmutableSamplers = nullptr;
 
-				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 250 } );
+				PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 250 );
 
 				Bindings.push_back( Binding );
 
@@ -888,7 +877,7 @@ namespace Saturn {
 				Binding.stageFlags = texture.Stage == ShaderType::Vertex ? VK_SHADER_STAGE_VERTEX_BIT : ( texture.Stage == ShaderType::All ? VK_SHADER_STAGE_ALL : ( texture.Stage == ShaderType::Compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_FRAGMENT_BIT ) );
 				Binding.pImmutableSamplers = nullptr;
 
-				PoolSizes.push_back( { .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 250 } );
+				PoolSizes.emplace_back( VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 250 );
 
 				Bindings.push_back( Binding );
 
