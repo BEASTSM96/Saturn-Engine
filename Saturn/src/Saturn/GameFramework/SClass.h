@@ -31,6 +31,8 @@
 #include "Saturn/Core/Ref.h"
 #include "Saturn/Core/Timestep.h"
 
+#include "SProperty.h"
+
 #include <filesystem>
 
 namespace Saturn {

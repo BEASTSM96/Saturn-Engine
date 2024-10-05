@@ -38,6 +38,7 @@
 #include "Saturn/Audio/AudioSystem.h"
 #include "ImGuiAuxiliary.h"
 #include "EditorIcons.h"
+#include "Saturn/GameFramework/Core/ClassMetadataHandler.h"
 
 #include "Saturn/Vulkan/VulkanContext.h"
 

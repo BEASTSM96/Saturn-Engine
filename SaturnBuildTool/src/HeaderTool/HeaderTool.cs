@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using static SaturnBuildTool.Tools.HeaderTool;
 
 // This file does need a rework.
 // When we compile we should have the Worker thread generate the file information, but we make sure that we don't write the to file.
@@ -243,17 +246,87 @@ namespace SaturnBuildTool.Tools
                 {
                     lineNumber++;
 
-                    // SPROPERTY
-                    if (LastLineHadSP)
+                    if( LastLineHadSP ) 
                     {
+                        // Parse args now.
+                        Match typeMatch = Regex.Match(line, @"(\w+)\s+(\w+)");
+                        if (typeMatch.Success)
+                        {
+                            string type = typeMatch.Groups[1].Value;
+                            string name = typeMatch.Groups[2].Value;
+
+                            Property p = new Property
+                            {
+                                Name = name,
+                                Type = type,
+                                Line = lineNumber
+                            };
+
+                            Console.WriteLine($"setting sprop details, line number: {lineNumber}");
+
+                            cmd.CurrentFile.Properties.Add(lineNumber, p);
+                        }
+
+                        LastLineHadSP = false;
+                    }
+
+                    // Check for SPROPERTY
+                    {
+                        Match SpropertyMatch = Regex.Match( line, @"SPROPERTY\((.*?)\)", RegexOptions.Singleline );
+                        if( SpropertyMatch.Success ) 
+                        {
+                            Console.WriteLine("found sprop");
+
+                            // Now parse the args in the sprop
+                            string args = SpropertyMatch.Groups[1].Value.Trim();
+                            Console.WriteLine( $"Args: {args}" );
+
+                            // Check if the line ends as we accept two type of valid use
+                            // that is:
+                            // SPROPERTY( args )
+                            // float Test;
+                            // OR:
+                            // SPROPERTY( args ) float Test;
+
+                            string renamingContentOnLine = line.Substring( SpropertyMatch.Index + SpropertyMatch.Length ).Trim();
+
+                            if( renamingContentOnLine == string.Empty || renamingContentOnLine.StartsWith("\n") ) 
+                            {
+                                Console.WriteLine( "Line ends." );
+                                LastLineHadSP = true;
+                            }
+                            else
+                            {
+                                // Parse args now.
+                                Match typeMatch = Regex.Match(line, @"SPROPERTY\(.*?\)\s+(\w+)\s+(\w+)", RegexOptions.Singleline);
+                                if (typeMatch.Success)
+                                {
+                                    string type = typeMatch.Groups[1].Value;
+                                    string name = typeMatch.Groups[2].Value;
+
+                                    Property p = new Property
+                                    {
+                                        Name = name,
+                                        Type = type,
+                                        Line = lineNumber
+                                    };
+
+                                    cmd.CurrentFile.Properties.Add( lineNumber, p );
+                                }
+                            }
+                        }
+
+                        /*
+                        Console.WriteLine("checking sprop");
+
                         // Now we (should), we at the line where the value is defined, we can now parse it.
-                        Regex regex = new Regex(@"^\s*(?<type>\w+(?:\[\])?)\s+(?<name>\w+)\s*(?:=\s*\S+\s*)?;?$");
+                        Regex regex = new Regex(@"SPROPERTY\(\)\s+(\w+)\s+(\w+)");
                         Match m = regex.Match(line);
 
                         if (m.Success)
                         {
-                            string type = m.Groups["type"].Value;
-                            string name = m.Groups["name"].Value;
+                            string type = m.Groups[1].Value;
+                            string name = m.Groups[2].Value;
 
                             Property p = new Property
                             {
@@ -271,9 +344,16 @@ namespace SaturnBuildTool.Tools
                             {
                                 cmd.CurrentFile.Properties[lineNumber] = p;
                             }
+                        
+                            Console.WriteLine(cmd.CurrentFile.Properties[ lineNumber ].Name );
+                            Console.WriteLine(cmd.CurrentFile.Properties[ lineNumber ].Type );
+                            Console.WriteLine("MACTH FOUND");
                         }
-
-                        LastLineHadSP = false;
+                        else 
+                        {
+                            Console.WriteLine("however, no matches found.");
+                        }
+                        */
                     }
 
                     if (line.Contains("SCLASS") && LineIsNotComment(line))
@@ -342,26 +422,6 @@ namespace SaturnBuildTool.Tools
                         cmd.GeneratedHeader.AppendLine("\r\n");
                         cmd.GeneratedHeader.AppendLine(idGeneratedBody);
                     }
-
-                    if (line.Contains("SPROPERTY") && LineIsNotComment(line))
-                    {
-                        LastLineHadSP = true;
-
-                        Property p = new Property
-                        {
-                            Line = lineNumber + 1
-                        };
-
-                        if (!cmd.CurrentFile.Properties.ContainsKey(p.Line) || !cmd.CurrentFile.Properties.ContainsValue(p))
-                        {
-                            cmd.CurrentFile.Properties.Add(p.Line, p);
-                        }
-
-                        if (line.Contains("VisibleInEditor"))
-                        {
-                            p.Flags |= SP.VisibleInEditor;
-                        }
-                    }
                 }
 
                 sr.Close();
@@ -393,17 +453,19 @@ namespace SaturnBuildTool.Tools
             CommandQueue.TryGetValue(HeaderPath, out cmd);
             cmd.GeneratedSource = new StringBuilder();
 
+            string className = cmd.CurrentFile.ClassName;
+
             try
             {
                 cmd.GeneratedSource.AppendLine(GenWarning);
 
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format("{0}.Gen.h", cmd.CurrentFile.ClassName)));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", string.Format("{0}.Gen.h", className)));
 
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/GameScript.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/GameFramework/Core/ClassMetadataHandler.h"));
                 cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"", "Saturn/Scene/Entity.h"));
 
-                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format("{0}.h", cmd.CurrentFile.ClassName)));
+                cmd.GeneratedSource.AppendLine(string.Format("#include \"{0}\"\r\n", string.Format("{0}.h", className)));
 
                 string cExternBeg = "extern \"C\" {\r\n";
                 string cExternEnd = "}\r\n";
@@ -413,9 +475,9 @@ namespace SaturnBuildTool.Tools
                 // Check if this class is spawnable
                 if ((cmd.CurrentFile.SClassInfo & SC.Spawnable) == SC.Spawnable)
                 {
-                    string function = string.Format("__declspec(dllexport) Saturn::Entity* _Z_Create_{0}(Saturn::Scene* pScene)", cmd.CurrentFile.ClassName);
+                    string function = string.Format("__declspec(dllexport) Saturn::Entity* _Z_Create_{0}(Saturn::Scene* pScene)", className);
                     function += "\r\n{\r\n";
-                    function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", cmd.CurrentFile.ClassName);
+                    function += string.Format("\tSaturn::Ref<{0}> Target = Saturn::Ref<{0}>::Create();\r\n", className);
                     function += "\tSaturn::Ref<Saturn::Entity> TargetReturn = Target.As<Saturn::Entity>();\r\n";
                     function += "\treturn TargetReturn.Get();\r\n";
                     function += "}\r\n";
@@ -444,31 +506,100 @@ namespace SaturnBuildTool.Tools
                 {
                     if ((cmd.CurrentFile.SClassInfo & SC.NoMetadata) != SC.NoMetadata)
                     {
-                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", className);
                         metadata += "{\r\n";
-                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", cmd.CurrentFile.ClassName, cmd.CurrentFile.BaseClass);
-                        metadata += string.Format("\t__Metadata_{0}.GeneratedSourcePath = __FILE__;\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"{1}\";\r\n", cmd.CurrentFile.ClassName, HeaderPath.Replace("\\", "\\\\"));
-                        metadata += string.Format("\t__Metadata_{0}.ExternalData = true;\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", className);
+                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", className);
+                        metadata += string.Format("\t__Metadata_{0}.ParentClassName = \"{1}\";\r\n", className, cmd.CurrentFile.BaseClass);
+                        metadata += string.Format("\t__Metadata_{0}.GeneratedSourcePath = __FILE__;\r\n", className);
+                        metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"{1}\";\r\n", className, HeaderPath.Replace("\\", "\\\\"));
+                        metadata += string.Format("\t__Metadata_{0}.ExternalData = true;\r\n", className);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", className);
                         metadata += "}\r\n";
 
                         cmd.GeneratedSource.AppendLine(metadata);
                     }
                     else 
                     {
-                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", cmd.CurrentFile.ClassName);
+                        string metadata = string.Format("static void ReflCreateMetadataFor_{0}()\r\n", className);
                         metadata += "{\r\n";
-                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", cmd.CurrentFile.ClassName);
-                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", cmd.CurrentFile.ClassName);
+                        metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", className);
+                        metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", className);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", className);
                         metadata += "}\r\n";
 
                         cmd.GeneratedSource.AppendLine(metadata);
                     }
                 }
+
+                // Internal Class
+                string internalClassName = string.Format( "{0}Int", className );
+
+                string classStructure = string.Format( "class {0}\r\n", internalClassName);
+                classStructure += "{\r\n";
+                classStructure += "public:\r\n";
+
+                // Properties
+                foreach (var kv in cmd.CurrentFile.Properties) 
+                {
+                    Property property = kv.Value;
+
+                    classStructure += string.Format( "\tstatic void Set{0}( {1}* pClass, {2} value )\r\n", property.Name, className, property.Type);
+                    classStructure += "\t{\r\n";
+                    classStructure += string.Format( "\t\tpClass->{0} = value;\r\n", property.Name, property.Type);
+                    classStructure += "\t}\r\n";
+
+                    classStructure += string.Format( "\tstatic {0} Get{1}( {2}* pClass )\r\n", property.Type, property.Name, className );
+                    classStructure += "\t{\r\n";
+                    classStructure += string.Format( "\t\treturn pClass->{0};\r\n", property.Name );
+                    classStructure += "\t}\r\n";
+
+                    classStructure += "\r\n";
+                }
+
+                classStructure += "};\r\n";
+                classStructure += "\r\n";
+
+                classStructure += string.Format( "static void ReflRegisterPropetiesFor_{0}()\r\n", className);
+                classStructure += "{\r\n";
+
+                /* AMEND: SProperty when changed.
+                struct SProperty
+	            {
+		            std::string Name;
+		            std::string Type;
+		            SPropertyFlags Flags;
+
+		            const void* SetPropertyFunction;
+		            const void* GetPropertyFunction;
+                };*/
+
+                foreach (var kv in cmd.CurrentFile.Properties)
+                {
+                    Property property = kv.Value;
+
+                    classStructure += string.Format("\t////////////////////////////////////////////////////////////////////////// {0}\r\n", property.Name.ToUpper());
+
+                    string type = "Saturn::SPropertyType::";
+                    if( property.Type == "char" ) 
+                    {
+                        type += "Char";
+                    }
+                    else if( property.Type == "float" ) 
+                    {
+                        type += "Float";
+                    }
+                    else { type += "Float"; }
+
+                    classStructure += string.Format("\tSaturn::SProperty Prop_{0} = {{ .Name = \"{0}\", .Type = {1}, .Flags = Saturn::SPropertyFlags::None }};\r\n", property.Name, type);
+                    classStructure += string.Format("\tProp_{1}.pSetPropertyFunction = &{0}::Set{1};\r\n", internalClassName, property.Name);
+                    classStructure += string.Format("\tProp_{1}.pGetPropertyFunction = &{0}::Get{1};\r\n", internalClassName, property.Name);
+
+                    classStructure += string.Format("\tSaturn::ClassMetadataHandler::Get().RegisterProperty( \"{0}\", Prop_{1} );\r\n", className, property.Name);
+                }
+                classStructure += "}\r\n";
+
+                cmd.GeneratedSource.AppendLine( classStructure );
 
                 // Auto-Registration (DLL only).
                 if (ProjectInfo.Instance.CurrentConfigKind != ConfigKind.Dist)
@@ -476,22 +607,23 @@ namespace SaturnBuildTool.Tools
                     Random random = new Random();
                     int randomNumber = random.Next();
                         
-                    string call = string.Format("struct Ar{0}_RTEditor\r\n", cmd.CurrentFile.ClassName);
+                    string call = string.Format("struct Ar{0}_RTEditor\r\n", className);
                     call += "{\r\n";
-                    call += string.Format("\tAr{0}_RTEditor()\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\tAr{0}_RTEditor()\r\n", className);
                     call += "\t{\r\n";
-                    call += string.Format("\t\tReflCreateMetadataFor_{0}();\r\n", cmd.CurrentFile.ClassName);
+                    call += string.Format("\t\tReflCreateMetadataFor_{0}();\r\n", className);
+                    call += string.Format("\t\tReflRegisterPropetiesFor_{0}();\r\n", className);
                     call += "\t}\r\n";
                     call += "};\r\n";
                     call += "\r\n";
-                    call += string.Format("static Ar{0}_RTEditor Ar{0}_Runtime_{1};", cmd.CurrentFile.ClassName, randomNumber);
+                    call += string.Format("static Ar{0}_RTEditor Ar{0}_Runtime_{1};", className, randomNumber);
 
                     cmd.GeneratedSource.AppendLine(call);
                     cmd.GeneratedSource.AppendLine("//^^^ Auto-Registration\r\n");
                 }
                 else
                 {
-                    string call = "// No Auto-Registration Game is exe.\r\n";
+                    string call = "// No Auto-Registration.\r\n";
                     cmd.GeneratedSource.AppendLine(call);
                 }
             }
