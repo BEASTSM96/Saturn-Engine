@@ -33,16 +33,14 @@ namespace Saturn {
 
 	ClassMetadataHandler::ClassMetadataHandler()
 	{
+		constexpr size_t Classes = 3;
+		m_Metadata.reserve( Classes );
+
 		// Push some default classes.
 		// TODO: This should be done by the Build Tool however we are not using it for the Engine.
-		SClassMetadata SClassData{ .Name = "SClass", .ParentClassName = "", .ExternalData = false };
-		m_Metadata.push_back( SClassData );
-
-		SClassData = { .Name = "Entity", .ParentClassName = "SClass", .ExternalData = false };
-		m_Metadata.push_back( SClassData );
-
-		SClassData = { .Name = "Character", .ParentClassName = "Entity", .ExternalData = false };
-		m_Metadata.push_back( SClassData );
+		m_Metadata.emplace_back( "SClass", "", "", "", false );
+		m_Metadata.emplace_back( "Entity", "SClass", "", "", false );
+		m_Metadata.emplace_back( "Character", "Entity", "", "", false );
 
 		ConstructTree();
 	}
@@ -52,21 +50,37 @@ namespace Saturn {
 		m_Metadata.clear();
 	}
 
-	void ClassMetadataHandler::Add( const SClassMetadata& rData )
+	void ClassMetadataHandler::AddMetadata( const SClassMetadata& rData )
 	{
 		m_Metadata.push_back( rData );
 		
 		ConstructTree();
 	}
 
-	const SClassMetadata& ClassMetadataHandler::GetSClassMetadata() const
+	SClassMetadata& ClassMetadataHandler::GetSClassMetadata()
 	{
 		return m_MetadataTree.at( "SClass" );
 	}
 
-	SClassMetadata& ClassMetadataHandler::GetSClassMetadata()
+	void ClassMetadataHandler::RegisterProperty( const std::string& rMetadataName, const SProperty& rProperty )
 	{
-		return m_MetadataTree.at( "SClass" );
+		const auto Itr = m_MetadataTree.find( rMetadataName );
+
+		if( Itr != m_MetadataTree.end() )
+		{
+			m_Properties[ rMetadataName ].push_back( rProperty );
+		}
+	}
+
+	std::vector<SProperty>& ClassMetadataHandler::GetAllProperties( const std::string& rMetadataName )
+	{
+		const auto Itr = m_MetadataTree.find( rMetadataName );
+
+		if( Itr != m_MetadataTree.end() )
+		{
+			auto& properties = m_Properties[ rMetadataName ];
+			return properties;
+		}
 	}
 
 	void ClassMetadataHandler::ConstructTree()

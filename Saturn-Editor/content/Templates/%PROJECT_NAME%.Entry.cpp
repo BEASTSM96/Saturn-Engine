@@ -28,7 +28,7 @@
 
 // Game client main.
 /* Generated code, DO NOT modify! */
-// This files supports Saturn version 0.1.3 (4096)
+// This files supports Saturn version 0.1.3 (4099)
 
 #if defined(_WIN32)
 #include <Windows.h>

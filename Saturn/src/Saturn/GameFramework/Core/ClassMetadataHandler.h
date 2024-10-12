@@ -58,13 +58,14 @@ namespace Saturn {
 				Function( data );
 		}
 
-		void Add( const SClassMetadata& rData );
-
-		// Temp
+		void AddMetadata( const SClassMetadata& rData );
 		bool IsEngineMetadata( const SClassMetadata& rData ) { return !rData.ExternalData; }
 
-		// This return metadata for the SClass class.
-		const SClassMetadata& GetSClassMetadata() const;
+		void RegisterProperty( const std::string& rMetadataName, const SProperty& rProperty );
+		
+		std::vector<SProperty>& GetAllProperties( const std::string& rMetadataName );
+
+	public:
 		SClassMetadata& GetSClassMetadata();
 
 	private:
@@ -73,5 +74,8 @@ namespace Saturn {
 	private:
 		std::vector<SClassMetadata> m_Metadata;
 		std::unordered_map<std::string, SClassMetadata> m_MetadataTree;
+
+		// Metadata name -> SProperties
+		std::unordered_map<std::string, std::vector<SProperty>> m_Properties;
 	};
 }

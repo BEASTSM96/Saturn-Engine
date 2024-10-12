@@ -11,6 +11,8 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 
+SaturnDir = os.getenv('SATURN_DIR')
+
 group "Game"
 project "__PROJECT_NAME__"
 	kind "Makefile"
@@ -23,8 +25,8 @@ project "__PROJECT_NAME__"
 
 	files
 	{
-		"Source/**.h",
 		"Source/**.cpp",
+		"Source/**.h",
 		"Source/**.cs"
 	}
 
@@ -40,6 +42,10 @@ project "__PROJECT_NAME__"
 		filter "configurations:Debug"
 			runtime "Debug"
 			symbols "on"
+
+			debugcommand { SaturnDir .. "/bin/Debug-windows-x86_64/Saturn-Editor/Saturn-Editor.exe" }
+			debugargs    { "%{prj.location}/%{prj.name}.sproject" }
+			debugdir     { SaturnDir .. "/Saturn-Editor" }
 
 			buildcommands
 			{
@@ -59,6 +65,10 @@ project "__PROJECT_NAME__"
 		filter "configurations:Release"
 			runtime "Release"
 			optimize "on"
+
+			debugcommand { SaturnDir .. "/bin/Release-windows-x86_64/Saturn-Editor/Saturn-Editor.exe" }
+			debugargs    { "%{prj.location}/%{prj.name}.sproject" }
+			debugdir     { SaturnDir .. "/Saturn-Editor" }
 
 			buildcommands
 			{

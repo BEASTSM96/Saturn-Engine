@@ -396,6 +396,27 @@ namespace Saturn {
 			}
 		}
 
+		// Draw properties
+		if( ImGui::TreeNodeEx( ( void* ) ( ( uint32_t ) entity ), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, "Properties" ) ) 
+		{
+			auto& rProperties = ClassMetadataHandler::Get().GetAllProperties( entity->GetComponent<ScriptComponent>().ScriptName );
+			for( const auto& rProperty : rProperties )
+			{
+				switch( rProperty.Type )
+				{
+					case SPropertyType::Float:
+					{
+						float temporaryValue = GetSProperty<float>( rProperty, entity.Get() );
+						if( Auxiliary::DrawFloatControl( rProperty.Name, temporaryValue ) )
+							SetSProperty( rProperty, entity.Get(), temporaryValue );
+					} break;
+				}
+			}
+
+			ImGui::TreePop();
+		}
+		ImGui::Separator();
+
 		DrawComponent<TransformComponent>( "Transform", entity, [&]( auto& tc )
 		{
 			bool modified = false;

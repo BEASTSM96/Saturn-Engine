@@ -14,15 +14,6 @@ namespace SaturnBuildTool.Tools
 {
     internal class HeaderTool
     {
-        public struct Property 
-        {
-            public string Name;
-            public string Type;
-
-            public int Line;
-            public SP Flags;
-        }
-
         public struct CurrentGenFile 
         {
             public SC SClassInfo;
@@ -315,45 +306,6 @@ namespace SaturnBuildTool.Tools
                                 }
                             }
                         }
-
-                        /*
-                        Console.WriteLine("checking sprop");
-
-                        // Now we (should), we at the line where the value is defined, we can now parse it.
-                        Regex regex = new Regex(@"SPROPERTY\(\)\s+(\w+)\s+(\w+)");
-                        Match m = regex.Match(line);
-
-                        if (m.Success)
-                        {
-                            string type = m.Groups[1].Value;
-                            string name = m.Groups[2].Value;
-
-                            Property p = new Property
-                            {
-                                Name = name,
-                                Type = type,
-                                Line = lineNumber
-                            };
-
-                            if (cmd.CurrentFile.Properties.ContainsKey(lineNumber))
-                            {
-                                cmd.CurrentFile.Properties.TryGetValue(lineNumber, out Property oldProp);
-                                oldProp = p;
-                            }
-                            else
-                            {
-                                cmd.CurrentFile.Properties[lineNumber] = p;
-                            }
-                        
-                            Console.WriteLine(cmd.CurrentFile.Properties[ lineNumber ].Name );
-                            Console.WriteLine(cmd.CurrentFile.Properties[ lineNumber ].Type );
-                            Console.WriteLine("MACTH FOUND");
-                        }
-                        else 
-                        {
-                            Console.WriteLine("however, no matches found.");
-                        }
-                        */
                     }
 
                     if (line.Contains("SCLASS") && LineIsNotComment(line))
@@ -400,7 +352,7 @@ namespace SaturnBuildTool.Tools
                         idGeneratedBody += baseFileId;
                         idGeneratedBody += "_GENERATED_BODY \\\r\n";
 
-                        // Before we can write the macro, we need to create a new macro contiaing the class declarations.
+                        // Before we can write the macro, we need to create a new macro with the class declarations.
 
                         string classDeclarations = "#define ";
                         classDeclarations += baseFileId;
@@ -514,7 +466,7 @@ namespace SaturnBuildTool.Tools
                         metadata += string.Format("\t__Metadata_{0}.GeneratedSourcePath = __FILE__;\r\n", className);
                         metadata += string.Format("\t__Metadata_{0}.HeaderPath = \"{1}\";\r\n", className, HeaderPath.Replace("\\", "\\\\"));
                         metadata += string.Format("\t__Metadata_{0}.ExternalData = true;\r\n", className);
-                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", className);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().AddMetadata( __Metadata_{0} );\r\n", className);
                         metadata += "}\r\n";
 
                         cmd.GeneratedSource.AppendLine(metadata);
@@ -525,7 +477,7 @@ namespace SaturnBuildTool.Tools
                         metadata += "{\r\n";
                         metadata += string.Format("\tSaturn::SClassMetadata __Metadata_{0};\r\n", className);
                         metadata += string.Format("\t__Metadata_{0}.Name = \"{0}\";\r\n", className);
-                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().Add( __Metadata_{0} );\r\n", className);
+                        metadata += string.Format("\tSaturn::ClassMetadataHandler::Get().AddMetadata( __Metadata_{0} );\r\n", className);
                         metadata += "}\r\n";
 
                         cmd.GeneratedSource.AppendLine(metadata);
@@ -567,7 +519,7 @@ namespace SaturnBuildTool.Tools
                 struct SProperty
 	            {
 		            std::string Name;
-		            std::string Type;
+		            SPropertyType Type;
 		            SPropertyFlags Flags;
 
 		            const void* SetPropertyFunction;

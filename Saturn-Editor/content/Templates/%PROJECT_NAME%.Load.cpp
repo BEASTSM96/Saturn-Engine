@@ -28,11 +28,13 @@
 
 #include <Saturn/Project/Project.h>
 #include <Saturn/Core/Module.h>
+#include <Saturn/Core/OptickProfiler.h>
 
 extern "C" {
 
-	__declspec(dllexport) void InitializeModule( Saturn::Project* rProject )
+	__declspec(dllexport) void InitializeModule( Saturn::Project* rProject, const void* pTracyData )
 	{
 		Saturn::Project::SetActiveProject( rProject );
+		tracy::InitializeModule( pTracyData );
 	}
 };

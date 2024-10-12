@@ -38,7 +38,9 @@ namespace Saturn {
 	{
 		None,
 		EditInEditor,
-		ReadOnlyInEditor
+		ReadOnlyInEditor,
+		Asset,
+		Serialised
 	};
 
 	enum class SPropertyType
@@ -55,6 +57,10 @@ namespace Saturn {
 		Int16,
 		Int32, /* same as int*/
 		Int64,
+		Vector3, /* glm::vec2 */
+		Vector2, /* glm::vec3 */
+		Vector4, /* glm::vec4 */
+		String, /* std::string */
 		Object,
 		AssetHandle,
 		Class,
@@ -86,36 +92,46 @@ namespace Saturn {
 
 	//////////////////////////////////////////////////////////////////////////
 	// Function types
-	SAT_CREATE_FNP_FOR_TYPE( Char,   char );
-	SAT_CREATE_FNP_FOR_TYPE( Float,  float );
-	SAT_CREATE_FNP_FOR_TYPE( Int,    int );
-	SAT_CREATE_FNP_FOR_TYPE( Double, double );
-	SAT_CREATE_FNP_FOR_TYPE( Uint8,  unsigned char );
-	SAT_CREATE_FNP_FOR_TYPE( Uint16, unsigned short );
-	SAT_CREATE_FNP_FOR_TYPE( Uint32, unsigned int );
-	SAT_CREATE_FNP_FOR_TYPE( Uint64, unsigned long long );
-	SAT_CREATE_FNP_FOR_TYPE( Int8,   signed char );
-	SAT_CREATE_FNP_FOR_TYPE( Int16,  short );
-	SAT_CREATE_FNP_FOR_TYPE( Int32,  int );
-	SAT_CREATE_FNP_FOR_TYPE( Int64,  long long );
+	SAT_CREATE_FNP_FOR_TYPE( Char,    char );
+	SAT_CREATE_FNP_FOR_TYPE( Float,   float );
+	SAT_CREATE_FNP_FOR_TYPE( Int,     int );
+	SAT_CREATE_FNP_FOR_TYPE( Double,  double );
+	SAT_CREATE_FNP_FOR_TYPE( Uint8,   unsigned char );
+	SAT_CREATE_FNP_FOR_TYPE( Uint16,  unsigned short );
+	SAT_CREATE_FNP_FOR_TYPE( Uint32,  unsigned int );
+	SAT_CREATE_FNP_FOR_TYPE( Uint64,  unsigned long long );
+	SAT_CREATE_FNP_FOR_TYPE( Int8,    signed char );
+	SAT_CREATE_FNP_FOR_TYPE( Int16,   short );
+	SAT_CREATE_FNP_FOR_TYPE( Int32,   int );
+	SAT_CREATE_FNP_FOR_TYPE( Int64,   long long );
+	SAT_CREATE_FNP_FOR_TYPE( vec2,    glm::vec2 );
+	SAT_CREATE_FNP_FOR_TYPE( vec3,    glm::vec3 );
+	SAT_CREATE_FNP_FOR_TYPE( vec4,    glm::vec4 );
+	SAT_CREATE_FNP_FOR_TYPE( String,  std::string );
+	SAT_CREATE_FNP_FOR_TYPE( Unknown, void* );
 
 	template<typename Ty>
 	static void SetSProperty( const SProperty& rProperty, SClass* pClass, Ty value )
 	{
 		switch( rProperty.Type )
 		{
-			case SPropertyType::Char:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Char, rProperty, pClass, value );   } break;
-			case SPropertyType::Float:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Float, rProperty, pClass, value );  } break;
-			case SPropertyType::Int:    { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int, rProperty, pClass, value );    } break;
-			case SPropertyType::Double: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Double, rProperty, pClass, value ); } break;
-			case SPropertyType::Uint8:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint8, rProperty, pClass, value );  } break;
-			case SPropertyType::Uint16: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint16, rProperty, pClass, value ); } break;
-			case SPropertyType::Uint32: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint32, rProperty, pClass, value ); } break;
-			case SPropertyType::Uint64: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint64, rProperty, pClass, value ); } break;
-			case SPropertyType::Int8:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int8, rProperty, pClass, value );   } break;
-			case SPropertyType::Int16:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );  } break;
-			case SPropertyType::Int32:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass, value );  } break;
-			case SPropertyType::Int64:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );  } break;
+			case SPropertyType::Char:    { SAT_CALL_SET_FUNCTION_FOR_TYPE( Char, rProperty, pClass, value );    } break;
+			case SPropertyType::Float:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Float, rProperty, pClass, value );   } break;
+			case SPropertyType::Int:     { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int, rProperty, pClass, value );     } break;
+			case SPropertyType::Double:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Double, rProperty, pClass, value );  } break;
+			case SPropertyType::Uint8:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint8, rProperty, pClass, value );   } break;
+			case SPropertyType::Uint16:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint16, rProperty, pClass, value );  } break;
+			case SPropertyType::Uint32:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint32, rProperty, pClass, value );  } break;
+			case SPropertyType::Uint64:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( Uint64, rProperty, pClass, value );  } break;
+			case SPropertyType::Int8:    { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int8, rProperty, pClass, value );    } break;
+			case SPropertyType::Int16:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );   } break;
+			case SPropertyType::Int32:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass, value );   } break;
+			case SPropertyType::Int64:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );   } break;
+			case SPropertyType::Vector2: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass, value );    } break;
+			case SPropertyType::Vector3: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass, value );    } break;
+			case SPropertyType::Vector4: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass, value );    } break;
+			case SPropertyType::String:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( String, rProperty, pClass, value );  } break;
+			case SPropertyType::Unknown: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass, value ); } break;
 		}
 	}
 
@@ -124,18 +140,23 @@ namespace Saturn {
 	{
 		switch( rProperty.Type )
 		{
-			case SPropertyType::Char:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Char, rProperty, pClass );   } break;
-			case SPropertyType::Float:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Float, rProperty, pClass );  } break;
-			case SPropertyType::Int:    { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int, rProperty, pClass );    } break;
-			case SPropertyType::Double: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Double, rProperty, pClass ); } break;
-			case SPropertyType::Uint8:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint8, rProperty, pClass );  } break;
-			case SPropertyType::Uint16: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint16, rProperty, pClass ); } break;
-			case SPropertyType::Uint32: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint32, rProperty, pClass ); } break;
-			case SPropertyType::Uint64: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint64, rProperty, pClass ); } break;
-			case SPropertyType::Int8:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int8, rProperty, pClass );   } break;
-			case SPropertyType::Int16:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );  } break;
-			case SPropertyType::Int32:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass );  } break;
-			case SPropertyType::Int64:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );  } break;
+			case SPropertyType::Char:    { SAT_CALL_GET_FUNCTION_FOR_TYPE( Char, rProperty, pClass );    } break;
+			case SPropertyType::Float:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Float, rProperty, pClass );   } break;
+			case SPropertyType::Int:     { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int, rProperty, pClass );     } break;
+			case SPropertyType::Double:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Double, rProperty, pClass );  } break;
+			case SPropertyType::Uint8:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint8, rProperty, pClass );   } break;
+			case SPropertyType::Uint16:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint16, rProperty, pClass );  } break;
+			case SPropertyType::Uint32:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint32, rProperty, pClass );  } break;
+			case SPropertyType::Uint64:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( Uint64, rProperty, pClass );  } break;
+			case SPropertyType::Int8:    { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int8, rProperty, pClass );    } break;
+			case SPropertyType::Int16:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );   } break;
+			case SPropertyType::Int32:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass );   } break;
+			case SPropertyType::Int64:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );   } break;
+			case SPropertyType::Vector2: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass );    } break;
+			case SPropertyType::Vector4: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass );    } break;
+			case SPropertyType::Vector3: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass );    } break;
+			case SPropertyType::String:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( String, rProperty, pClass );  } break;
+			case SPropertyType::Unknown: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass ); } break;
 		}
 	}
 }
