@@ -216,7 +216,8 @@ namespace Saturn {
 		VirtualFS::Get().UnmountBase( Project::GetActiveConfig().Name );
 
 		// I would free the game DLL, however, there is some threading issues with Tracy.
-		//delete m_GameModule;
+		delete m_GameModule;
+		m_GameModule = nullptr;
 	}
 
 	void EditorLayer::OnUpdate( Timestep time )
