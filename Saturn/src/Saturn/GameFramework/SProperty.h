@@ -29,6 +29,7 @@
 #pragma once
 
 #include <string>
+#include <glm/glm.hpp>
 
 namespace Saturn {
 
@@ -70,6 +71,8 @@ namespace Saturn {
 	struct SProperty
 	{
 		std::string Name;
+		std::string NativeType;
+
 		SPropertyType Type;
 		SPropertyFlags Flags;
 
@@ -127,11 +130,11 @@ namespace Saturn {
 			case SPropertyType::Int16:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );   } break;
 			case SPropertyType::Int32:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass, value );   } break;
 			case SPropertyType::Int64:   { SAT_CALL_SET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass, value );   } break;
-			case SPropertyType::Vector2: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass, value );    } break;
-			case SPropertyType::Vector3: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass, value );    } break;
-			case SPropertyType::Vector4: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass, value );    } break;
-			case SPropertyType::String:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( String, rProperty, pClass, value );  } break;
-			case SPropertyType::Unknown: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass, value ); } break;
+			//case SPropertyType::Vector2: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass, value );    } break;
+			//case SPropertyType::Vector3: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass, value );    } break;
+			//case SPropertyType::Vector4: { SAT_CALL_SET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass, value );    } break;
+			//case SPropertyType::String:  { SAT_CALL_SET_FUNCTION_FOR_TYPE( String, rProperty, pClass, value );  } break;
+			//case SPropertyType::Unknown: { SAT_CALL_SET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass, value ); } break;
 		}
 	}
 
@@ -152,11 +155,11 @@ namespace Saturn {
 			case SPropertyType::Int16:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );   } break;
 			case SPropertyType::Int32:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int32, rProperty, pClass );   } break;
 			case SPropertyType::Int64:   { SAT_CALL_GET_FUNCTION_FOR_TYPE( Int16, rProperty, pClass );   } break;
-			case SPropertyType::Vector2: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass );    } break;
-			case SPropertyType::Vector4: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass );    } break;
-			case SPropertyType::Vector3: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass );    } break;
-			case SPropertyType::String:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( String, rProperty, pClass );  } break;
-			case SPropertyType::Unknown: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass ); } break;
+			//case SPropertyType::Vector2: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec2, rProperty, pClass );    } break;
+			//case SPropertyType::Vector4: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec4, rProperty, pClass );    } break;
+			//case SPropertyType::Vector3: { SAT_CALL_GET_FUNCTION_FOR_TYPE( vec3, rProperty, pClass );    } break;
+			//case SPropertyType::String:  { SAT_CALL_GET_FUNCTION_FOR_TYPE( String, rProperty, pClass );  } break;
+			//case SPropertyType::Unknown: { SAT_CALL_GET_FUNCTION_FOR_TYPE( Unknown, rProperty, pClass ); } break;
 		}
 	}
 }

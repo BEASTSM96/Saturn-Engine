@@ -90,7 +90,6 @@ project "Saturn"
 		"%{prj.name}/vendor/stb/",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/vendor/vulkan/include",
---		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -274,7 +273,6 @@ project "Saturn-Editor"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
---		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -420,13 +418,10 @@ project "Saturn-ProjectBrowser"
 		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
 		"Saturn/vendor",
---		"%{IncludeDir.Ruby}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.assimp}",
-		"%{IncludeDir.DiscordRPC}",
-		"%{IncludeDir.rapidjson}",
 		"%{IncludeDir.glslc}",
 		"%{IncludeDir.shaderc}",
 		"%{IncludeDir.SPIRV_Cross}",
@@ -525,6 +520,48 @@ project "Saturn-ProjectBrowser"
 			optimize "on"
 
 group "Tools"
+project "Saturn-SharedStorage"
+	location "Saturn-SharedStorage"
+	kind "SharedLib"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+	warnings "Default"
+		
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	includedirs
+	{
+		"%{prj.name}/src",
+		"Saturn/src",
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+		
+		filter "configurations:Debug"
+			runtime "Debug"
+			symbols "on"
+		
+		filter "configurations:Release"
+			runtime "Release"
+			optimize "on"
+		
+		filter "configurations:Dist"
+			runtime "Release"
+			optimize "on"
+			symbols "Off"
+			kind "StaticLib"
+			defines { "SATURN_SS_STATIC" }
+
+group "Trinity"
 project "SaturnBuildTool"
 	location "SaturnBuildTool"
 	language "C#"
@@ -553,16 +590,15 @@ project "SaturnBuildTool"
 	filter { "configurations:Dist" }
 		optimize "On"
 
-		
-group "Tools"
-project "Saturn-SharedStorage"
-	location "Saturn-SharedStorage"
-	kind "SharedLib"
+group "Trinity"
+project "SaturnHeaderTool"
+	location "SaturnHeaderTool"
 	language "C++"
+	kind "ConsoleApp"
 	cppdialect "C++20"
 	staticruntime "on"
 	warnings "Default"
-		
+
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -571,28 +607,60 @@ project "Saturn-SharedStorage"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp"
 	}
-
+	
 	includedirs
 	{
-		"%{prj.name}/src",
+		"Saturn/vendor/spdlog/include",
 		"Saturn/src",
---		"%{IncludeDir.Ruby}"
+		"Saturn/vendor",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.glslc}",
+		"%{IncludeDir.shaderc}",
+		"%{IncludeDir.SPIRV_Cross}",
+		"%{IncludeDir.vma}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/pxshared",
+		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.Optick}",
+		"Saturn/vendor/vulkan/include",
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.ImSpinner}",
+		"%{IncludeDir.Filewatch}",
+		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.ImguiNodeEditor}",
+		"%{IncludeDir.Tracy}",
+
+		"%{IncludeDir.SharedStorage}"
 	}
-	
+
+	links
+	{
+		"Saturn"
+	}
+
 	filter "system:windows"
 		systemversion "latest"
-		
-		filter "configurations:Debug"
-			runtime "Debug"
-			symbols "on"
-		
-		filter "configurations:Release"
-			runtime "Release"
-			optimize "on"
-		
-		filter "configurations:Dist"
-			runtime "Release"
-			optimize "on"
-			symbols "Off"
-			kind "StaticLib"
-			defines { "SATURN_SS_STATIC" }
+
+		defines
+		{
+			"SAT_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		defines "SAT_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "SAT_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "SAT_DIST"
+		runtime "Release"
+		optimize "on"
+		symbols "Off"

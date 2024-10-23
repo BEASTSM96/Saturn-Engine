@@ -26,50 +26,99 @@
 *********************************************************************************************
 */
 
-#pragma once
+#include "HeaderToolApplication.h"
 
-#include "Saturn/Core/Ref.h"
-#include "Saturn/Core/Timestep.h"
+#include <string>
+#include <vector>
 
-#include "SProperty.h"
-
-#include <filesystem>
+static std::vector<std::string> s_ArgumentsMap 
+{
+	"/SRC",
+	"/OUT",
+	"/MT",
+	"/VERBOSE"
+};
 
 namespace Saturn {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SClass Metadata
-	// Editor Only
-	// This information could of been inside of the SClass however I want to keep this away from whatever class uses this.
-	// This is mainly used when choosing a parent class for a new class in the editor.
-	struct SClassMetadata 
+	HeaderToolApplication::HeaderToolApplication( std::span<char*> args )
+		: m_Args( args )
 	{
-		std::string Name;
-		std::string ParentClassName;
+		ValidateArgs();
+	}
 
-		std::filesystem::path GeneratedSourcePath;
-		std::filesystem::path HeaderPath;
-
-		bool ExternalData = false;
-	};
-
-	enum class SClassFlags
+	HeaderToolApplication::~HeaderToolApplication()
 	{
-		None = 0,
-		Spawnable = 1 << 0,
-		VisibleInEditor = 1 << 1,
-		NoMetadata = 1 << 2
-	};
+	}
 
-	class SClass : public RefTarget
+	bool HeaderToolApplication::ValidateArgs()
 	{
-	public:
-		SClass() {}
-		virtual ~SClass() = default;
+		// 2 args are needed, SourcePath, OutputPath
+		if( m_Args.size() < 2 ) return false;
 
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
-	};
+		// Start Parsing
+		std::string outPath = m_Args[ 0 ];
+		{
+			std::string prefix = "/OUT=";
+			auto pos = outPath.find( prefix );
 
+			if( pos != std::string::npos )
+			{
+				std::string path = outPath.substr( pos + prefix.length() );
+
+				m_SourcePath = path;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		std::string srcPath = m_Args[ 1 ];
+		{
+			std::string prefix = "/SRC=";
+			auto pos = srcPath.find( prefix );
+
+			if( pos != std::string::npos )
+			{
+				std::string path = srcPath.substr( pos + prefix.length() );
+
+				m_OutputPath = path;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		m_HeaderTool.SetWorkingDir( m_OutputPath );
+
+		return std::filesystem::exists( m_OutputPath ) && std::filesystem::exists( m_SourcePath );
+	}
+
+	void HeaderToolApplication::Run()
+	{
+		{
+			m_SourcePath = "D:\\Saturn\\Projects\\Rush\\Source\\Rush";
+			m_OutputPath = "D:\\Saturn\\Projects\\Rush\\Build";
+
+			m_HeaderTool.SetWorkingDir( m_OutputPath );
+		}
+
+		std::vector<std::filesystem::path> headerFiles;
+
+		// Search source path for all header files.
+		for( const auto& rEntry : std::filesystem::recursive_directory_iterator( m_SourcePath ) )
+		{
+			if( rEntry.is_directory() ) continue;
+
+			auto& rPath = rEntry.path();
+			if( rPath.extension() == ".h" || rPath.extension() == ".hpp" )
+				headerFiles.push_back( rPath );
+		}
+
+		m_HeaderTool.SubmitWorkList( headerFiles );
+
+		m_HeaderTool.StartGeneration();
+	}
 }

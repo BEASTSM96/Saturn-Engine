@@ -28,48 +28,30 @@
 
 #pragma once
 
-#include "Saturn/Core/Ref.h"
-#include "Saturn/Core/Timestep.h"
+#include "SaturnHeaderTool/src/CodeGeneration.h"
 
-#include "SProperty.h"
-
+#include <span>
 #include <filesystem>
 
 namespace Saturn {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SClass Metadata
-	// Editor Only
-	// This information could of been inside of the SClass however I want to keep this away from whatever class uses this.
-	// This is mainly used when choosing a parent class for a new class in the editor.
-	struct SClassMetadata 
-	{
-		std::string Name;
-		std::string ParentClassName;
-
-		std::filesystem::path GeneratedSourcePath;
-		std::filesystem::path HeaderPath;
-
-		bool ExternalData = false;
-	};
-
-	enum class SClassFlags
-	{
-		None = 0,
-		Spawnable = 1 << 0,
-		VisibleInEditor = 1 << 1,
-		NoMetadata = 1 << 2
-	};
-
-	class SClass : public RefTarget
+	class HeaderToolApplication
 	{
 	public:
-		SClass() {}
-		virtual ~SClass() = default;
+		HeaderToolApplication( std::span<char*> args );
+		~HeaderToolApplication();
 
-		virtual void BeginPlay() {}
-		virtual void OnUpdate( Saturn::Timestep ts ) {}
-		virtual void OnPhysicsUpdate( Saturn::Timestep ts ) {}
+		bool ValidateArgs();
+
+		void Run();
+
+	private:
+		HeaderTool m_HeaderTool;
+
+	private:
+		std::span<char*> m_Args;
+
+		std::filesystem::path m_SourcePath;
+		std::filesystem::path m_OutputPath;
 	};
-
 }
