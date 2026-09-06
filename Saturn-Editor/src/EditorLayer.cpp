@@ -4683,12 +4683,12 @@ namespace Saturn {
 				case MessageBoxType::Information:
 				case MessageBoxType::Warning:
 				{
-					Auxiliary::Image( m_ExclamationTexture, ImVec2( 72, 72 ) );
+					Auxiliary::Image( m_ExclamationTexture, ImVec2( 72.0f, 72.0f ) );
 				} break;
 
 				case MessageBoxType::Error:
 				{
-					Auxiliary::Image( EditorIcons::GetIcon( "Error" ), ImVec2( 72, 72 ) );
+					Auxiliary::Image( EditorIcons::GetIcon( "Error" ), ImVec2( 72.0f, 72.0f ) );
 				} break;
 
 				case MessageBoxType::InformationNoIcon: break;
@@ -4699,7 +4699,7 @@ namespace Saturn {
 			ImGui::EndHorizontal();
 
 			ImGui::BeginHorizontal( "##MsgBoxOpts" );
-			int buttonIndex = 0;
+			size_t buttonIndex = 0llu;
 
 			if( ( rInfo.Buttons & ( uint32_t ) MessageBoxButtons_Ok ) != 0 )
 			{
