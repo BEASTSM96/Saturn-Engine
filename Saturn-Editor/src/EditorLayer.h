@@ -348,8 +348,6 @@ namespace Saturn {
 
 		std::queue<MessageBoxInfo> m_MessageBoxes;
 		std::vector<EditorNotification> m_Notifications;
-		std::unordered_map<entt::entity, glm::mat4> m_GizmoOrignalTransforms;
-		std::unordered_map<entt::entity, std::tuple<glm::vec3, glm::vec3, glm::vec3>> m_GizmoModifiedTransforms;
 
 		std::function<void()> m_EventAfterPopup;
 		

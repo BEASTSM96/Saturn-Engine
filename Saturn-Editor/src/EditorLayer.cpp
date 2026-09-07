@@ -4522,12 +4522,6 @@ namespace Saturn {
 						centerPoint = glm::inverse( parentTransform ) * centerPoint;
 					}
 
-					// Store original transform for undo/redo
-					if( !m_WasGizmoUsed )
-					{
-						m_GizmoOrignalTransforms[ entity->GetHandle() ] = tc.GetTransform();
-					}
-
 					glm::vec3 translation;
 					glm::vec3 rotation;
 					glm::vec3 scale;
@@ -4585,32 +4579,6 @@ namespace Saturn {
 				{
 					m_DisableViewportMovement = false;
 				}
-
-				/*
-				for( const auto& [handle, transform] : m_GizmoOrignalTransforms )
-				{
-					const auto& [newPosition, newRotation, newScale] = m_GizmoModifiedTransforms[ handle ];
-
-					SharedPtr<Entity> entity = m_EditorScene->FindEntityByHandle( handle );
-					TransformComponent& tc = entity->GetComponent<TransformComponent>();
-
-					glm::mat4 newTransform = glm::translate( glm::mat4( 1.0f ), newPosition )
-						* glm::toMat4( glm::quat( newRotation ) )
-						* glm::scale( glm::mat4( 1.0f ), newScale );
-
-					Ref<UndoRedoActionModifyTransformation> action = Ref<UndoRedoActionModifyTransformation>::Create( entity, transform, newTransform );
-					m_GlobalUndoRedoGroup->AddAction( action, ( uint64_t ) entity->GetHandle() );
-
-					if( entity->HasComponent<NavigationMeshSpecificationComponent>() )
-					{
-						SharedPtr<NavBoundsEntity> bounds = entity.As<NavBoundsEntity>();
-						bounds->GatherGeometryAndBuild();
-					}
-				}
-				*/
-
-				m_GizmoOrignalTransforms.clear();
-				m_GizmoModifiedTransforms.clear();
 
 				m_WasGizmoUsed = false;
 			}
