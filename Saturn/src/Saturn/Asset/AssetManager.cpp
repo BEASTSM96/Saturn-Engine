@@ -76,7 +76,7 @@ namespace Saturn {
 			// A ref count of 1 means that the only reference
 			// to this asset is the LoadedMap itself.
 			std::erase_if( m_Assets->GetLoadedAssetsMap(),
-				[this]( const auto& kv ) -> bool
+				[ this ]( const auto& kv ) -> bool
 			{
 				const auto& [candidateID, loadedAsset] = kv;
 				const bool shouldRem = loadedAsset->GetRefCount() == 1 && loadedAsset->CanPurge();
