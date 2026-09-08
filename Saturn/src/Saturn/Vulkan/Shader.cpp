@@ -389,45 +389,48 @@ namespace Saturn {
 	void Shader::DetermineShaderTypes()
 	{
 #if !defined(SAT_DIST)
-		int VertexShaders = -1;
-		int FragmentShaders = -1;
-		int ComputeShaders = -1;
+		size_t vertexShaderIndex = 0llu;
+		size_t fragmentShaderIndex = 0llu;
+		size_t computeShaderIndex = 0llu;
 
-		const char* TypeToken = "#type";
-		const size_t TypeTokenLength = strlen( TypeToken );
-		size_t TypeTokenPosition = m_FileContents.find( TypeToken, 0 );
+		constexpr std::string_view typeToken = "#type";
+		constexpr size_t typeTokenLength = typeToken.size();
 		
-		while ( TypeTokenPosition != std::string::npos )
+		size_t typeTokenPosition = m_FileContents.find( typeToken, 0 );
+		
+		while( typeTokenPosition != std::string::npos )
 		{
-			std::string FileCopy;
+			std::string temporaryFileCopy;
+			std::copy( m_FileContents.begin(), m_FileContents.end(), std::back_inserter( temporaryFileCopy ) );
 			
-			std::copy( m_FileContents.begin(), m_FileContents.end(), std::back_inserter( FileCopy ) );
+			// On windows we'll use CRLF...
+#if defined(SAT_PLATFORM_WINDOWS)
+			const size_t typeTokenEnd = temporaryFileCopy.find( "\r\n", typeTokenPosition );
+
+			//... so we'll need to assert if we do not find CRLF characters.
+			SAT_CORE_ASSERT( typeTokenEnd != std::string::npos, "Shader must be CRLF!" );
+#else 
+			// And on other platforms, we'll use LF...
+			const size_t typeTokenEnd = temporaryFileCopy.find( "\n", typeTokenPosition );
+
+			//... so we'll need to assert if we do not find LF characters.
+			SAT_CORE_ASSERT( typeTokenEnd != std::string::npos, "Shader must be LF!" );
+#endif
+
+			const size_t begin = typeTokenPosition + typeTokenLength + 1;
+			const std::string type = temporaryFileCopy.substr( begin, typeTokenEnd - begin );
 			
-			const size_t TypeTokenEnd = FileCopy.find( "\r\n", TypeTokenPosition );
-			SAT_CORE_ASSERT( TypeTokenEnd != std::string::npos, "Shader must be CRLF!" );
-
-			const size_t Begin = TypeTokenPosition + TypeTokenLength + 1;
-
-			const std::string Type = FileCopy.substr( Begin, TypeTokenEnd - Begin );
+			const size_t nextLinePos = temporaryFileCopy.find_first_not_of( "\r\n", typeTokenEnd );
+			typeTokenPosition = temporaryFileCopy.find( typeToken, nextLinePos );
 			
-			const size_t NextLinePos = FileCopy.find_first_not_of( "\r\n", TypeTokenEnd );
-			TypeTokenPosition = FileCopy.find( TypeToken, NextLinePos );
-			
-			const auto RawShaderCode = FileCopy.substr( NextLinePos, TypeTokenPosition - ( NextLinePos == std::string::npos ? FileCopy.size() - 1 : NextLinePos ) );
+			const auto rawShaderCode = temporaryFileCopy.substr( nextLinePos, typeTokenPosition - ( nextLinePos == std::string::npos ? temporaryFileCopy.size() - 1 : nextLinePos ) );
 
-			const auto Shader_Type = ShaderTypeFromString( Type );
+			const auto shaderType = ShaderTypeFromString( type );
+		
+			const auto index = shaderType == ShaderType::Vertex ? vertexShaderIndex++ : ( shaderType == ShaderType::Fragment ? fragmentShaderIndex++ : computeShaderIndex++ );
 
-			if( Shader_Type == ShaderType::Fragment )
-				++FragmentShaders;
-			else if( Shader_Type == ShaderType::Vertex )
-				++VertexShaders;
-			else if( Shader_Type == ShaderType::Compute )
-				++ComputeShaders;
-			
-			const int Index = Shader_Type == ShaderType::Vertex ? VertexShaders : ( Shader_Type == ShaderType::Fragment ? FragmentShaders : ComputeShaders );
-
-			ShaderSource src = ShaderSource( RawShaderCode, Shader_Type, Index );
-			m_ShaderSources[ ShaderSourceKey( Shader_Type, Index ) ] = src;
+			ShaderSource src = ShaderSource( rawShaderCode, shaderType, index );
+			m_ShaderSources[ ShaderSourceKey( shaderType, index ) ] = std::move( src );
 		}
 #endif
 	}

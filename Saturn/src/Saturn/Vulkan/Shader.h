@@ -68,7 +68,7 @@ namespace Saturn {
 	struct ShaderUniformBuffer
 	{
 		std::string Name;
-		uint32_t Binding;
+		uint32_t Binding = UINT32_MAX;
 		ShaderType Location = ShaderType::None;
 		size_t Size = 0;
 
@@ -111,7 +111,7 @@ namespace Saturn {
 	struct ShaderStorageBuffer
 	{
 		std::string Name;
-		uint32_t Binding;
+		uint32_t Binding = UINT32_MAX;
 		ShaderType Location = ShaderType::None;
 		size_t Size = 0;
 
@@ -122,6 +122,7 @@ namespace Saturn {
 
 		auto operator<=>( const ShaderStorageBuffer& rOther ) const = default;
 
+	public:
 		static void Serialise( const ShaderStorageBuffer& rObject, std::ofstream& rStream )
 		{
 			RawSerialisation::WriteString( rObject.Name, rStream );
@@ -150,15 +151,16 @@ namespace Saturn {
 	{
 		std::string Name;
 		ShaderType Stage = ShaderType::None;
-		uint32_t Set;
-		uint32_t Binding;
+		uint32_t Set = UINT32_MAX;
+		uint32_t Binding = UINT32_MAX;
 
 		// The number of elements that this image as, for example in GLSL
 		// layout(set = 0, binding = 1) uniform sampler2D u_Textures[16];
 		// ArraySize would be 16, it will default to 1 if no array is specified, 
 		// because you cannot have zero elements in an image descriptor.
-		uint32_t ArraySize;
+		uint32_t ArraySize = UINT32_MAX;
 
+	public:
 		static void Serialise( const ShaderSampledImage& rObject, std::ofstream& rStream )
 		{
 			RawSerialisation::WriteString( rObject.Name, rStream );
@@ -222,6 +224,7 @@ namespace Saturn {
 		}
 	};
 
+	//
 	// ShaderDescriptorSetTemplate
 	// Consider this class as a template/layout/description to a descriptor set
 	// For example in a GLSL shader if we have:
@@ -246,9 +249,13 @@ namespace Saturn {
 	// StorageBuffers = 1 (s_VisiblePointLightIndicesBuffer [ShaderStorageBuffer])
 	// WriteDescriptorSets = 3 (u_AlbedoTexture image wds, u_Matrices texture wds, s_VisiblePointLightIndicesBuffer wds )
 	// 
-	// ShaderDescriptorSetTemplate do not own or create a Vulkan DescriptorSet it is simply used for information about the descriptor set. 
+	// ShaderDescriptorSetTemplate do not own or create a Vulkan DescriptorSet it is simply used for information about 
+	// the descriptor set. 
+	// 
 	// To allocate a descriptor set with such information you'd need to use the shader to create it with the correct set.
-	// ShaderDescriptorSetTemplate does however, contain the Vulkan Descriptor Set Layout, it is created and destroyed by the shader.
+	// ShaderDescriptorSetTemplate does however, contain the Vulkan Descriptor Set Layout, it is created and destroyed 
+	// by the shader.
+	//
 	class ShaderDescriptorSetTemplate
 	{
 	public:
@@ -334,23 +341,23 @@ namespace Saturn {
 
 	struct ShaderSource
 	{
-		ShaderSource() {}
-		~ShaderSource() {}
+		ShaderSource() = default;
+		~ShaderSource() = default;
 		
-		ShaderSource( const std::string& rSrc, ShaderType Type, int Index )
+		ShaderSource( const std::string& rSrc, ShaderType Type, size_t Index )
 			: Source( rSrc ), Type( Type ), Index( Index )
 		{
 		}
 
-		std::string Source = "";
-		ShaderType Type = ShaderType::Vertex;
-		int Index = -1;
+		std::string Source;
+		ShaderType Type = ShaderType::None;
+		size_t Index = UINT64_MAX;
 	};
 
 	struct ShaderSourceKey
 	{
 		ShaderSourceKey() {}
-		ShaderSourceKey( ShaderType _Type, int _Index ) : Type( _Type ), Index( _Index ) {}
+		ShaderSourceKey( ShaderType _Type, size_t _Index ) : Type( _Type ), Index( _Index ) {}
 		~ShaderSourceKey() {}
 
 		ShaderSourceKey operator=( const ShaderSourceKey& rKey )
@@ -370,9 +377,10 @@ namespace Saturn {
 			return ( Type == rKey.Type && Index == rKey.Index );
 		}
 
-		ShaderType Type = ShaderType::Vertex;
-		int Index = -1;
+		ShaderType Type = ShaderType::None;
+		size_t Index = UINT64_MAX;
 
+	public:
 		static void Serialise( const ShaderSourceKey& rKey, std::ofstream& rStream )
 		{
 			RawSerialisation::WriteObject( rKey.Type, rStream );
@@ -421,7 +429,7 @@ namespace Saturn {
 		Shader() {}
 	
 		Shader( const std::filesystem::path& rFilepath );
-		~Shader();
+		virtual ~Shader();
 	
 		std::string& GetName() { return m_Name; }
 		const std::string& GetName() const { return m_Name; }
@@ -490,13 +498,13 @@ namespace Saturn {
 	private:
 		SpvSourceMap m_SpvCode;
 
-		std::string m_Name = "";
+		std::string m_Name;
 
 #if !defined(SAT_DIST)
-		std::string m_FileContents = "";
+		std::string m_FileContents;
 		size_t m_FileSize = 0;
 
-		std::filesystem::path m_Filepath = "";
+		std::filesystem::path m_Filepath;
 
 		ShaderSourceMap m_ShaderSources;
 #endif
@@ -513,7 +521,7 @@ namespace Saturn {
 	};
 
 	// The shader library will hold shaders
-	class ShaderLibrary : public RefTarget
+	class ShaderLibrary
 	{
 	public:
 		SAT_SINGLETON_LAZY( ShaderLibrary )
