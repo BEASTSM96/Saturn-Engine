@@ -251,8 +251,11 @@ namespace Saturn {
 				SAT_CORE_WARN( "Failed to read editor shader bundle! Engine will compile them." );
 			}
 		}
-		else
+		else 
+		{
 			SAT_CORE_WARN( "No editor shader bundle exists! Engine will compile them." );
+			EditorShaderBundle::MarkForceWrite();
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		// Scene loading and Scene Renderer

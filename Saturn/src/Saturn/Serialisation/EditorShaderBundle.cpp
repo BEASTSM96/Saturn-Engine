@@ -156,6 +156,11 @@ namespace Saturn {
 #endif
 	}
 
+	void EditorShaderBundle::MarkForceWrite()
+	{
+		s_PendingWrite = true;
+	}
+
 	void EditorShaderBundle::TryPackageIfNeeded()
 	{
 		if( s_PendingWrite )
