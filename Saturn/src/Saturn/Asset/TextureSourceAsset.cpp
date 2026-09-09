@@ -85,7 +85,7 @@ namespace Saturn {
 			SAT_CORE_ASSERT( stbi_info( m_AbsolutePath.string().c_str(), &Width, &Height, &Channels ), "Failed to get information about texture file." );
 
 			// Channels needs to be set for GetImageFormat(), a bit screwy.
-			m_Channels = Channels;
+			m_Channels = 4;
 
 			// 1024*1024 texture and over could be timely to load on the main thread.
 			// So we'll load it on a job system thread
@@ -156,7 +156,11 @@ namespace Saturn {
 
 			m_Width = Width;
 			m_Height = Height;
-			m_Channels = Channels;
+
+			// TODO: This is bad, forcing every texture to have 4 channels is a waste of CPU and GPU space,
+			// but when I set it to the correct number of channels some textures (i.e. 1 channel textures)
+			// don't seem to work and have a strange grid pattern.
+			m_Channels = 4;
 
 			// Must be done on the RenderThread because we are creating vulkan resources and submitting a command buffer.
 			RenderThread::Get().Queue(
