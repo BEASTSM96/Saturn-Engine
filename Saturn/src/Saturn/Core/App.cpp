@@ -75,7 +75,10 @@ namespace Saturn {
 #endif
 
 		InitWindow();
+
+#if !defined(SAT_HEADLESS)
 		InitGraphics();
+#endif
 
 		// Now, resize to specification width and height
 		if( m_Specification.WindowWidth != 0 && m_Specification.WindowHeight != 0 )
@@ -88,13 +91,7 @@ namespace Saturn {
 		RenderThread::Get().EnableIf( HasFlag( ApplicationFlag_UseGameThread_DEPRECATED ) );
 		RenderThread::Get().Start();
 
-#if defined( SAT_DIST )
-		m_Window->Show();
-#else
-		m_ImGuiLayer = new ImGuiLayer();
-		m_ImGuiLayer->OnAttach();
-		m_Window->Show();
-#endif
+		PresentWindow();
 
 #if defined( SAT_PROFILER_ENABLE )
 		tracy::StartupProfiler();
@@ -144,12 +141,19 @@ namespace Saturn {
 
 			if( !m_Window->Minimized() )
 			{
+
+#if !defined(SAT_HEADLESS)
 				Renderer::Get()->BeginFrame();
+#endif
+
 				{
 					BuildRenderCommands();
 				}
+
+#if !defined(SAT_HEADLESS)
 				// End this frame on render thread.
 				RenderThread::Get().Queue( [=] { Renderer::Get()->EndFrame(); } );
+#endif
 			}
 			else
 				std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
@@ -180,7 +184,7 @@ namespace Saturn {
 		// However "Terminate" is used to destroy any data in the class but will not remove it from the singleton list, it is also used because we don't own the class so we can just implicitly destroy them.
 		RenderThread::Get().RequestJoin();
 
-#if !defined( SAT_DIST )
+#if !defined( SAT_DIST ) && !defined(SAT_HEADLESS)
 		m_VulkanContext->SubmitTerminateResource( [&]()
 		{
 			SAT_CORE_ASSERT( m_Layers.empty(), "Not all layers have been removed prior to the Application shutdown. The applicaition is not responsible for cleaning up layers it doesn't own." );
@@ -214,7 +218,7 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// Render ImGui.
 
-#if !defined(SAT_DIST)
+#if !defined(SAT_DIST) && !defined(SAT_HEADLESS)
 		// Begin on main thread.
 		m_ImGuiLayer->Begin();
 
@@ -382,7 +386,7 @@ namespace Saturn {
 		m_BlockCV.notify_all();
 	}
 
-#if !defined(SAT_DIST)
+#if !defined(SAT_DIST) && !defined(SAT_HEADLESS)
 	void Application::LoadFonts()
 	{
 		if( m_ImGuiLayer )
@@ -392,6 +396,9 @@ namespace Saturn {
 
 	std::filesystem::path Application::OpenFile( const std::string& rFilter ) const
 	{
+#if defined(SAT_HEADLESS)
+		return std::filesystem::path();
+#else
 		NFD::Init();
 
 		std::filesystem::path path;
@@ -436,10 +443,14 @@ namespace Saturn {
 		NFD::Quit();
 
 		return path;
+#endif
 	}
 
 	std::vector<std::filesystem::path> Application::OpenMultipleFiles( const std::string& rFilter ) const
 	{
+#if defined(SAT_HEADLESS)
+		return std::vector<std::filesystem::path>{};
+#else
 		std::vector<std::filesystem::path> paths;
 
 		NFD::Init();
@@ -496,10 +507,14 @@ namespace Saturn {
 		NFD::Quit();
 
 		return paths;
+#endif
 	}
 
 	std::filesystem::path Application::SaveFile( const std::string& rFilter ) const
 	{
+#if defined(SAT_HEADLESS)
+		return std::filesystem::path();
+#else
 		NFD::Init();
 
 		std::filesystem::path path;
@@ -544,6 +559,7 @@ namespace Saturn {
 		NFD::Quit();
 
 		return path;
+#endif
 	}
 
 	void Application::OpenNativeFileExplorer( const std::filesystem::path& rPath, bool select /*= false */ )
@@ -564,6 +580,9 @@ namespace Saturn {
 
 	std::filesystem::path Application::OpenFolder() const
 	{
+#if defined(SAT_HEADLESS)
+		return std::filesystem::path();
+#else
 		std::filesystem::path path;
 
 		NFD::Init();
@@ -588,6 +607,7 @@ namespace Saturn {
 		NFD::Quit();
 
 		return path;
+#endif
 	}
 
 	const char* Application::GetCurrentPlatformName()
@@ -678,6 +698,19 @@ namespace Saturn {
 		};
 
 		CrashCatch::initialize( config );
+#endif
+	}
+
+	void Application::PresentWindow()
+	{
+#if !defined(SAT_HEADLESS)
+#if defined( SAT_DIST )
+		m_Window->Show();
+#else
+		m_ImGuiLayer = new ImGuiLayer();
+		m_ImGuiLayer->OnAttach();
+		m_Window->Show();
+#endif
 #endif
 	}
 

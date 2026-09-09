@@ -228,6 +228,7 @@ namespace Saturn {
 		void InitCrashReporter();
 		void InitWindow();
 		void InitGraphics();
+		void PresentWindow();
 
 	private:
 		std::queue<std::shared_ptr<Event>> m_DeferredEventQueue;
@@ -246,7 +247,7 @@ namespace Saturn {
 
 		ApplicationSpecification m_Specification;
 		
-#if !defined(SAT_DIST)
+#if !defined(SAT_DIST) && !defined(SAT_HEADLESS)
 		ImGuiLayer* m_ImGuiLayer = nullptr;
 #endif
 

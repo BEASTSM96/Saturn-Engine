@@ -32,6 +32,10 @@
 #include "Saturn/Core/StringAuxiliary.h"
 #include "Saturn/Vulkan/Texture.h"
 
+#if defined(SAT_HEADLESS)
+#include "Backend/RubyNullBackend.h"
+#endif
+
 #if defined(_WIN32)
 #include "Backend/RubyWindowsBackend.h"
 #endif
@@ -41,7 +45,9 @@ namespace Saturn {
 	RubyWindow::RubyWindow( const RubyWindowSpecification& rSpec )
 		: m_WindowTitle( rSpec.Name ), m_GraphicsAPI( rSpec.GraphicsAPI ), m_Style( rSpec.Style )
 	{
-#if defined(_WIN32)
+#if defined(SAT_HEADLESS)
+		m_pDefaultBackend = std::make_unique<RubyNullBackend>( rSpec, this );
+#elif defined(SAT_PLATFORM_WINDOWS)
 		m_pDefaultBackend = std::make_unique<RubyWindowsBackend>( rSpec, this );
 #endif
 

@@ -75,7 +75,9 @@ public:
 			}
 		}
 
+#if !defined(SAT_HEADLESS)
 		LoadFonts();
+#endif
 	}
 
 	virtual void OnInit() override
