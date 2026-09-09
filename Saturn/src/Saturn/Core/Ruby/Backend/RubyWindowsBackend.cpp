@@ -1133,7 +1133,11 @@ namespace Saturn {
 		if( !color )
 			return;
 
-		std::memcpy( dibPix, icon->GetData(), icon->Width() * icon->Height() * 4 );
+		Buffer TemporaryBuffer = icon->X31CopyToBuffer();
+
+		std::memcpy( dibPix, TemporaryBuffer.Data, icon->Width() * icon->Height() * 4 );
+
+		TemporaryBuffer.Free();
 
 		// Create bitmap...
 		HBITMAP mask = ::CreateBitmap( icon->Width(), icon->Height(), 1, 1, nullptr );
