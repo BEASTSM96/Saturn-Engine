@@ -275,14 +275,14 @@ namespace Saturn {
 					SaveAndMarkClean();
 				}
 
-				if( ImGui::MenuItem( "Close" ) )
-				{
-					m_WindowOpen = false;
-				}
-
 				if( ImGui::MenuItem( "Find" ) )
 				{
 					m_IsSearching ^= 1;
+				}
+
+				if( ImGui::MenuItem( "Close" ) )
+				{
+					m_WindowOpen = false;
 				}
 
 				ImGui::EndMenu();
