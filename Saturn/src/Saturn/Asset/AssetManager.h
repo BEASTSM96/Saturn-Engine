@@ -280,6 +280,10 @@ namespace Saturn {
 #else
 		VFSAssetImporter m_Importer;
 #endif
+		// The number of times an asset was loaded from disk/asset bundle.
+		// useful to know when we should purge an asset.
+		std::unordered_map<AssetID, std::atomic_ullong> m_ImportAssetCount;
+		
 		// Number of times an asset was purged.
 		std::unordered_map<AssetID, std::atomic_ullong> m_PurgeAssetCount;
 
