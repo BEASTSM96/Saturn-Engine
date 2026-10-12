@@ -857,7 +857,7 @@ namespace Saturn {
 				const Ref<Asset> prefabAsset = AssetManager::Get()->FindAsset( pc.AssetID );
 				if( prefabAsset )
 				{
-					ImGui::Text( "Prefab: %s", prefabAsset->Name );
+					ImGui::Text( "Prefab: %s", prefabAsset->Name.c_str() );
 				}
 
 				ImGui::EndTooltip();
