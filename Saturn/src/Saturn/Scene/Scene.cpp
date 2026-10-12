@@ -728,13 +728,29 @@ namespace Saturn {
 
 		auto submitBoxCollider = [ this, &sceneRenderer ]( SharedPtr<Entity> entity, Ref<StaticMesh> dbgMesh, Ref<MaterialRegistry> materialRegistry )
 		{
-			glm::mat4 transform = GetTransformRelativeToParent( entity );
+			const auto& rTransformComponent = GetWorldSpaceTransform( entity );
+
 			const auto& rComponent = entity->GetComponent<BoxColliderComponent>();
+			
+			// Normally, the extent (the scale) is independent from the entity's scale
+			// unless AutoAdjustExtent is true,
+			// then we match.
+			if( rComponent.AutoAdjustExtent )
+			{
+				auto colliderTransform = glm::translate( glm::mat4( 1.0f ), rTransformComponent.Position + rComponent.Offset ) *
+					glm::toMat4( rTransformComponent.GetRotation() ) *
+					glm::scale( glm::mat4( 1.0f ), rComponent.HalfExtents * 2.0f );
 
-			auto colliderTransform = glm::translate( glm::mat4( 1.0f ), rComponent.Offset )
-				* glm::scale( glm::mat4( 1.0f ), rComponent.HalfExtents * 2.0f );
+				sceneRenderer->SubmitPhysicsCollider( entity, dbgMesh, materialRegistry, colliderTransform );
+			}
+			else
+			{
+				auto colliderTransform = glm::translate( glm::mat4( 1.0f ), rTransformComponent.Position + rComponent.Offset ) *
+					glm::toMat4( rTransformComponent.GetRotation() ) *
+					glm::scale( glm::mat4( 1.0f ), rComponent.HalfExtents * 2.0f );
 
-			sceneRenderer->SubmitPhysicsCollider( entity, dbgMesh, materialRegistry, transform * colliderTransform );
+				sceneRenderer->SubmitPhysicsCollider( entity, dbgMesh, materialRegistry, colliderTransform );
+			}
 		};
 
 		auto submitSphereCollider = [ this, &sceneRenderer ]( SharedPtr<Entity> entity, Ref<StaticMesh> dbgMesh, Ref<MaterialRegistry> materialRegistry )
