@@ -424,11 +424,13 @@ namespace Saturn {
 	{
 		ShaderFlags_None = 0,
 
-		ShaderFlags_GameShader = 0x1,
+		ShaderFlags_LoadedFromCache = BIT( 0 ),
 
-		ShaderFlags_GameShaderAnim = 0x2,
+		ShaderFlags_GameShader = BIT( 1 ), 
+
+		ShaderFlags_GameShaderAnim = BIT( 2 ),
 		
-		ShaderFlags_Compiled = 0x4,
+		ShaderFlags_Compiled = BIT( 3 ),
 	};
 
 	class Shader : public RefTarget
@@ -509,6 +511,8 @@ namespace Saturn {
 		void AddDependency( Passkey<class ShaderIncludeHelper> pk, const std::filesystem::path& rPath );
 
 		bool DidShaderDidCompileSuccessfully() const { return ( m_ShaderFlags & ShaderFlags_Compiled ) != 0; }
+
+		ShaderFlags GetShaderFlags() const { return ( ShaderFlags )m_ShaderFlags; }
 
 	private:
 		void ReadFile();

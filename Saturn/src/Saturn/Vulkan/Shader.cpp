@@ -947,7 +947,7 @@ namespace Saturn {
 			pIncluder->SetShader( this );
 
 			CompilerOptions.SetIncluder( std::unique_ptr<ShaderIncludeHelper>( pIncluder ) );
-			if( m_ForceCompileAsAnimatedShader )
+			if( ( m_ShaderFlags & ShaderFlags_GameShaderAnim ) != 0 )
 				CompilerOptions.AddMacroDefinition( "__SAT_SHADERCOMP_SH_ANIMATION_PBR" );
 
 			const auto preprocessResult = Compiler.PreprocessGlsl( 
@@ -1031,11 +1031,14 @@ namespace Saturn {
 			m_FileContents = OldfileContents;
 			m_FileSize = OldFileSize;
 			m_ShaderDependencies = OldShaderDeps;
+			m_ShaderFlags &= ~ShaderFlags_Compiled;
 
 			SAT_CORE_ERROR( "Shader hot reloading failed. Shader did not compile successfully!" );
 
 			return false;
 		}
+
+		m_ShaderFlags |= ShaderFlags_Compiled;
 
 		for( const auto& [k, data] : m_SpvCode )
 		{
