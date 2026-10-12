@@ -41,9 +41,6 @@ namespace Saturn {
 
 	Character::Character()
 	{
-		m_MouseSensitivity = 3.0f;
-		m_MouseUpMovement = 0.0f;
-
 		AddComponent<CharacterMovementComponent>();
 		AddComponent<AudioListenerComponent>();
 	}
@@ -84,6 +81,8 @@ namespace Saturn {
 			m_CameraEntity = wTemporaryCameraEntity.Access();
 		}
 
+		m_CameraController.Setup( m_CameraEntity->GetComponent<CameraComponent>().Camera, m_CameraEntity, CharacterCameraControllerMode::FirstPerson );
+
 		Input::Get().SetCursorMode( RubyCursorMode::Locked );
 	}
 
@@ -91,31 +90,7 @@ namespace Saturn {
 	{
 		Super::OnUpdate( ts );
 
-//		m_PlayerInputController->UpdateState();
-
-		if( Input::Get().KeyPressed( RubyKey_Esc ) && Input::Get().GetCursorMode() == RubyCursorMode::Locked )
-		{
-			Input::Get().SetCursorMode( RubyCursorMode::Normal, true );
-			m_CameraEntity->GetComponent<CameraComponent>().Camera->SetActive( false );
-		}
-		else if( Input::Get().MouseButtonPressed( RubyMouseButton_Left ) && Input::Get().GetCursorMode() != RubyCursorMode::Locked ) 
-		{
-			Input::Get().SetCursorMode( RubyCursorMode::Locked );
-
-#if !defined(SAT_DIST)
-			if( Input::Get().CanSetCursorMode() )
-#endif
-				m_CameraEntity->GetComponent<CameraComponent>().Camera->SetActive( true );
-
-			m_LastMousePos = Input::Get().MousePosition();
-		}
-
-		const auto& camera = m_CameraEntity->GetComponent<CameraComponent>().Camera;
-		auto rotation = m_CameraEntity->GetLocalRotation();
-		rotation.x = camera->GetPitch();
-		rotation.y = glm::pi<float>() - camera->GetYaw();
-
-		m_CameraEntity->SetRotation( rotation );
+		m_CameraController.Update();
 	}
 
 	void Character::OnPhysicsUpdate( Timestep ts )
@@ -273,12 +248,12 @@ namespace Saturn {
 
 	glm::vec3 Character::CalculateRight()
 	{
-		return m_CameraEntity->GetComponent<CameraComponent>().Camera->GetRightDirection();
+		return m_CameraController.GetRight();
 	}
 
 	glm::vec3 Character::CalculateForward()
 	{
-		return m_CameraEntity->GetComponent<CameraComponent>().Camera->GetForwardDirection();
+		return m_CameraController.GetForward();
 	}
 
 	void Character::MoveForward()

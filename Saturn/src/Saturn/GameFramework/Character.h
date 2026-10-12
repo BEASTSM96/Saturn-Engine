@@ -32,6 +32,7 @@
 #include "Core/GameScript.h"
 
 #include "PlayerInputController.h"
+#include "CharacterCameraController.h"
 
 namespace Saturn {
 
@@ -210,15 +211,14 @@ namespace Saturn {
 		//
 		glm::vec3 CalculateForward();
 
+	protected:
 		float m_MovementSpeed = 0.0f;
 		bool m_Sprinting = false;
 
-	private:
-		float m_MouseUpMovement = 0.0f;
-		float m_MouseSensitivity = 0.0f;
+		CharacterCameraController m_CameraController;
 
+	private:
 		glm::vec2 m_MovementDirection{};
-		glm::vec2 m_LastMousePos{};
 		glm::vec3 m_LastMovement{};
 
 	private:
