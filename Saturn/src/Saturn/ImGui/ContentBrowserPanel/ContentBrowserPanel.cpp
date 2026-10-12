@@ -665,7 +665,6 @@ namespace Saturn {
                 UpdateFiles( true );
                 FindAndRenameItem( asset->Name );
             }
-
             
 			if( ImGui::MenuItem( "New Physics Material" ) )
 			{
@@ -2103,8 +2102,6 @@ namespace Saturn {
 							// Asset import popups do not save the asset manager.
 							AssetManagerSerialiser ars;
 							ars.Serialise();
-
-							UpdateFiles( true );
 						} [[fallthrough]];
 
 						default:
