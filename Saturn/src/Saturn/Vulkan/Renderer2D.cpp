@@ -190,8 +190,6 @@ namespace Saturn {
 		}
 
 		PipelineSpecification PipelineSpec{};
-		PipelineSpec.Width = m_Width;
-		PipelineSpec.Height = m_Height;
 		PipelineSpec.Name = "Renderer2D(Quads)";
 		PipelineSpec.Shader = m_QuadShader;
 		PipelineSpec.RenderPass = targetPass == nullptr ? m_TempRenderPass : targetPass;

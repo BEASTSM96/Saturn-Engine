@@ -67,7 +67,6 @@ namespace Saturn {
 		VertexBufferLayout InstanceLayout;
 		// Layouts that are at the end of both VertexLayouts and Instance Layouts
 		VertexBufferLayout AdditionalLayoutAtEnd;
-		uint32_t Width = 0, Height = 0;
 		bool UseDepthTest = false;
 		bool UseStencilTest = false;
 		bool HasColorAttachment = true;

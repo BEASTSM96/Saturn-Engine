@@ -43,13 +43,13 @@ namespace Saturn {
 	{
 		switch( mode )
 		{
-			case Saturn::CullMode::None:
+			case CullMode::None:
 				return VK_CULL_MODE_NONE;
-			case Saturn::CullMode::Front:
+			case CullMode::Front:
 				return VK_CULL_MODE_FRONT_BIT;
-			case Saturn::CullMode::Back:
+			case CullMode::Back:
 				return VK_CULL_MODE_BACK_BIT;
-			case Saturn::CullMode::FrontAndBack:
+			case CullMode::FrontAndBack:
 				return VK_CULL_MODE_FRONT_AND_BACK;
 			default:
 				return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
@@ -342,17 +342,7 @@ namespace Saturn {
 		VkPipelineInputAssemblyStateCreateInfo AssemblyStateCreateInfo = {  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		AssemblyStateCreateInfo.topology = m_Specification.Topology;
 		AssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
-		
-		VkRect2D Scissor = {};
-		
-		VkViewport Viewport = {};
-		Viewport.x = 0.0f;
-		Viewport.y = 0.0f;
-		Viewport.width = ( float )m_Specification.Width;
-		Viewport.height = ( float )m_Specification.Height;
-		Viewport.minDepth = 0.0f;
-		Viewport.maxDepth = 1.0f;
-		
+				
 		std::vector< VkDynamicState > DynamicStates;
 		DynamicStates.push_back( VK_DYNAMIC_STATE_VIEWPORT );
 		DynamicStates.push_back( VK_DYNAMIC_STATE_SCISSOR );
@@ -361,6 +351,11 @@ namespace Saturn {
 		PipelineDynamicStateCreateInfo.pDynamicStates = DynamicStates.data();
 		PipelineDynamicStateCreateInfo.dynamicStateCount = ( uint32_t ) DynamicStates.size();
 		
+		// We do not need to set these to anything because they are dynamic,
+		// and will be specified before we bind this pipeline.
+		VkRect2D Scissor = {};
+		VkViewport Viewport = {};
+
 		VkPipelineViewportStateCreateInfo PipelineViewportState = { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 		PipelineViewportState.pViewports = &Viewport;
 		PipelineViewportState.viewportCount = 1;

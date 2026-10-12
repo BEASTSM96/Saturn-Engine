@@ -250,8 +250,6 @@ namespace Saturn {
 			m_RendererData.StaticMeshPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Static Meshes";
 		PipelineSpec.Shader = m_RendererData.StaticMeshShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
@@ -341,8 +339,6 @@ namespace Saturn {
 		}
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = ( uint32_t ) SHADOW_MAP_SIZE;
-		PipelineSpec.Height = ( uint32_t ) SHADOW_MAP_SIZE;
 		PipelineSpec.Name = "DirShadowMap";
 		PipelineSpec.Shader = m_RendererData.DirShadowMapShader;
 		PipelineSpec.UseDepthTest = true;
@@ -458,8 +454,6 @@ namespace Saturn {
 		}
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "PreDepth";
 		PipelineSpec.Shader = m_RendererData.PreDepthShader;
 		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
@@ -575,8 +569,6 @@ namespace Saturn {
 			m_RendererData.SceneCompositePipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Scene Composite";
 		PipelineSpec.Shader = m_RendererData.SceneCompositeShader;
 		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
@@ -646,8 +638,6 @@ namespace Saturn {
 			m_RendererData.PhysicsOutlinePipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Late Composite (PhysCollider)";
 		PipelineSpec.Shader = m_RendererData.PhysicsOutlineShader;
 		PipelineSpec.RenderPass = m_RendererData.LateCompositePass;
@@ -704,8 +694,6 @@ namespace Saturn {
 			m_RendererData.TexturePassPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Texture Pass";
 		PipelineSpec.Shader = m_RendererData.TexturePassShader;
 		PipelineSpec.RenderPass = VulkanContext::Get()->GetDefaultPass();
@@ -834,8 +822,6 @@ namespace Saturn {
 			m_RendererData.SSAOPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "SSAO";
 		PipelineSpec.Shader = m_RendererData.SSAOShader;
 		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
@@ -958,8 +944,6 @@ namespace Saturn {
 			m_RendererData.AOBlurPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "AO-Blur";
 		PipelineSpec.Shader = m_RendererData.SSAOBlurShader;
 		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
@@ -1017,8 +1001,6 @@ namespace Saturn {
 			m_RendererData.SelectedGeometryPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Selected Geometry";
 		PipelineSpec.Shader = m_RendererData.SelectionShader;
 		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
@@ -1107,8 +1089,6 @@ namespace Saturn {
 			m_RendererData.JumpFloodFirstPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "JumpFloodFirst";
 		PipelineSpec.Shader = m_RendererData.JmpFloodFirstShader;
 		PipelineSpec.RenderPass = m_RendererData.JumpFloodFirstPass;
@@ -1162,8 +1142,6 @@ namespace Saturn {
 			m_RendererData.JumpFloodEvenPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "JumpFloodEvenPass";
 		PipelineSpec.Shader = m_RendererData.JmpFloodEvenShader;
 		PipelineSpec.RenderPass = m_RendererData.JumpFloodEvenPass;
@@ -1221,8 +1199,6 @@ namespace Saturn {
 			m_RendererData.JumpFloodOddPipeline = nullptr;
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "JumpFloodOddPass";
 		PipelineSpec.Shader = m_RendererData.JmpFloodOddShader;
 		PipelineSpec.RenderPass = m_RendererData.JumpFloodOddPass;
@@ -1356,8 +1332,6 @@ namespace Saturn {
 		m_RendererData.SMAACompMaterial->SetResource( "u_SMAAOutTexture", m_RendererData.SMAAFinalOutImage );
 
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Late Composite (SMAA)";
 		PipelineSpec.Shader = m_RendererData.SMAACompositionShader;
 		PipelineSpec.RenderPass = m_RendererData.SMAACompPass;
@@ -1745,8 +1719,6 @@ namespace Saturn {
 
 		// Grid pipeline spec.
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Grid";
 		PipelineSpec.Shader = m_RendererData.GridShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
@@ -1782,8 +1754,6 @@ namespace Saturn {
 
 		// Create pipeline.
 		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Width = m_RendererData.Width;
-		PipelineSpec.Height = m_RendererData.Height;
 		PipelineSpec.Name = "Skybox";
 		PipelineSpec.Shader = m_RendererData.SkyboxShader;
 		PipelineSpec.RenderPass = m_RendererData.GeometryPass;

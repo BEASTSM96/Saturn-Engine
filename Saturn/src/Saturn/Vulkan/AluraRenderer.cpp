@@ -125,8 +125,6 @@ namespace Saturn {
 		}
 
 		PipelineSpecification PipelineSpec{};
-		PipelineSpec.Width = m_Width;
-		PipelineSpec.Height = m_Height;
 		PipelineSpec.Name = "Alura";
 		PipelineSpec.Shader = m_Shader;
 		PipelineSpec.RenderPass = m_TargetRenderPass;
