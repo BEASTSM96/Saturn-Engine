@@ -33,6 +33,8 @@
 
 #include "Saturn/Project/Project.h"
 
+#include "Saturn/Vulkan/Shader.h"
+
 #include "Saturn/Asset/AssetManager.h"
 #include "Saturn/Asset/ShaderAsset.h"
 
