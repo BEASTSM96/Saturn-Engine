@@ -1075,6 +1075,8 @@ namespace Saturn {
 	{
 		switch( rEvent.GetKeycode() )
 		{
+            default: break;
+
 			case RubyKey_Delete:
 			{
 				Ref<SceneHierarchyPanel> schPanel = m_ImGuiWindowManager->GetPanel<SceneHierarchyPanel>();
@@ -1156,10 +1158,12 @@ namespace Saturn {
 			} break;
 		}
 
-		if( Input::Get().KeyPressed( RubyKey_LeftCtrl ) || Input::Get().KeyPressed( RubyKey_RightCtrl ) && !m_RuntimeScene )
+		if( Input::Get().KeyPressed( RubyKey_LeftCtrl ) || ( Input::Get().KeyPressed( RubyKey_RightCtrl ) && !m_RuntimeScene ) )
 		{
 			switch( rEvent.GetKeycode() )
 			{
+                default: break;
+                    
 				case RubyKey_D:
 				{
 					const auto selections = m_SelectionManager->GetSelectionContexts( g_ActiveScene );
@@ -1235,6 +1239,7 @@ namespace Saturn {
 			{
 				switch( rEvent.GetKeycode() )
 				{
+                    default: break;
 					case RubyKey_S:
 					{
 						SaveFileAs();
@@ -1538,7 +1543,6 @@ namespace Saturn {
 		ImGui::SetNextWindowPos( ImVec2( rIO.DisplaySize.x * 0.5f - 150.0f, rIO.DisplaySize.y * 0.5f - 150.0f ), ImGuiCond_Once );
 		if( ImGui::Begin( "Project settings", &m_ShowUserSettings ) )
 		{
-			auto& userSettings = EngineSettings::Get();
 			Ref<Project> ActiveProject = Project::GetActiveProject();
 
 			auto& rConfig = ActiveProject->GetConfig();
@@ -1581,7 +1585,7 @@ namespace Saturn {
 			ImGui::BeginHorizontal( "##prj_strtscene" );
 			{
 				ImGui::Text( "Startup Scene:" );
-				startupSceneID == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( startupSceneAsset->Name.c_str() );
+				startupSceneID == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( "%s", startupSceneAsset->Name.c_str() );
 
 				ImGui::Spring();
 
@@ -1626,7 +1630,7 @@ namespace Saturn {
 				Ref<Asset> edStartupSceneAsset = m_AssetManager->FindAsset( edStartupScene );
 
 				ImGui::Text( "Editor Startup Scene:" );
-				edStartupScene == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( edStartupSceneAsset->Name.c_str() );
+				edStartupScene == 0 ? ImGui::TextColored( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ), "None" ) : ImGui::Text( "%s", edStartupSceneAsset->Name.c_str() );
 
 				ImGui::Spring();
 
@@ -1909,7 +1913,7 @@ namespace Saturn {
 				}
 
 				ImGui::Spring();
-				ImGui::Text( unit.c_str() );
+				ImGui::Text( "%s", unit.c_str() );
 
 				ImGui::EndHorizontal();
 
@@ -2584,7 +2588,7 @@ namespace Saturn {
 					ImGui::Text( "%" PRIu64, ( uint64_t ) id );
 
 					ImGui::TableSetColumnIndex( 2 );
-					ImGui::Text( AssetTypeToString( asset->Type ).data() );
+					ImGui::Text( "%s", AssetTypeToString( asset->Type ).data() );
 
 					ImGui::TableSetColumnIndex( 3 );
 					ImGui::Text( "%" PRIu32, asset->GetRefCount() );
@@ -3254,6 +3258,8 @@ namespace Saturn {
 			if( ImGui::MenuItem( "DEBUG: Show Alura Style live edit" ) )			m_ShowLiveAluraStyleEditor ^= 1;
 			if( ImGui::MenuItem( "DEBUG: Show attention" ) )						Application::Get()->GetWindow()->FlashAttention();
 
+            if( ImGui::MenuItem( "DEBUG: Create premake file (force)" ) ) Project::GetActiveProject()->CreatePremakeFile( true );
+            
 			ImGui::EndMenu();
 		}
 
@@ -3355,7 +3361,7 @@ namespace Saturn {
 		if( ImGui::BeginItemTooltip() )
 		{
 			const std::string pathStr = Project::GetActiveConfig().Path.string();
-			ImGui::Text( pathStr.c_str() );
+			ImGui::Text( "%s", pathStr.c_str() );
 			ImGui::EndTooltip();
 		}
 	}
@@ -3439,7 +3445,7 @@ namespace Saturn {
 				{
 					ImGui::TableNextColumn();
 					ImGui::AlignTextToFramePadding();
-					ImGui::Text( name.c_str() );
+					ImGui::Text( "%s", name.c_str() );
 
 					if( ImGui::BeginItemTooltip() )
 					{
@@ -3617,7 +3623,7 @@ namespace Saturn {
 							const Ref<Asset> dependency = m_AssetManager->FindAsset( id );
 							if( dependency )
 							{
-								ImGui::Text( dependency->Name.data() );
+								ImGui::Text( "%s", dependency->Name.data() );
 
 								if( ImGui::BeginItemTooltip() )
 								{
@@ -3706,13 +3712,13 @@ namespace Saturn {
 			if( m_BlockingOperation->GetTitle().empty() )
 				ImGui::Text( "Please wait for the operation to complete..." );
 			else
-				ImGui::Text( m_BlockingOperation->GetTitle().c_str() );
+				ImGui::Text( "%s", m_BlockingOperation->GetTitle().c_str() );
 
 			ImGui::Separator();
 
 			if( const std::string status = m_BlockingOperation->GetStatus(); !status.empty() )
 			{
-				ImGui::Text( status.c_str() );
+				ImGui::Text( "%s", status.c_str() );
 			}
 
 			ImGui::Separator();
@@ -4264,7 +4270,7 @@ namespace Saturn {
 		{
 			if( ImGui::BeginItemTooltip() )
 			{
-				ImGui::Text( pText );
+				ImGui::Text( "%s", pText );
 				ImGui::EndTooltip();
 			}
 		};
@@ -4374,7 +4380,7 @@ namespace Saturn {
 		const ImVec2 textSize = ImGui::CalcTextSize( text.data() );
 
 		ImGui::SetCursorPosX( ( size.x - textSize.x ) * 0.5f );
-		ImGui::Text( text.data() );
+		ImGui::Text( "%s", text.data() );
 
 		Auxiliary::Image( m_CameraPreviewSceneRenderer->CompositeImage(), ImGui::GetContentRegionAvail(), { 0, 1 }, { 1, 0 } );
 		ImGui::End();
@@ -4719,7 +4725,7 @@ namespace Saturn {
 				case MessageBoxType::InformationNoIcon: break;
 			}
 
-			ImGui::Text( rInfo.Text.c_str() );
+			ImGui::Text( "%s", rInfo.Text.c_str() );
 
 			ImGui::EndHorizontal();
 
@@ -5008,8 +5014,6 @@ namespace Saturn {
 	glm::vec2 EditorLayer::ConvertMouseToViewportNDC()
 	{
 		auto [mx, my] = ImGui::GetMousePos();
-		const auto& viewportBounds = m_ViewportBounds;
-
 		mx -= m_ViewportBounds.Min.x;
 		my -= m_ViewportBounds.Min.y;
 
@@ -5214,6 +5218,7 @@ namespace Saturn {
 		switch( rInfo.NotificationType )
 		{
 			// TODO: Create info texture.
+            default:
 			case MessageBoxType::Information:
 			case MessageBoxType::Warning:
 			{
