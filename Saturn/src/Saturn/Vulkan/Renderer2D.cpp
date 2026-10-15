@@ -315,7 +315,6 @@ namespace Saturn {
 		{
 			m_Width = w;
 			m_Height = h;
-			m_Resized = true;
 		}
 	}
 

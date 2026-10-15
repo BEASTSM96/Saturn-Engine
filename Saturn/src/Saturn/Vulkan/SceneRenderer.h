@@ -369,8 +369,10 @@ namespace Saturn {
 		Ref<Pass> GeometryPass;
 		Ref<Framebuffer> GeometryFramebuffer;
 
-		// STATIC MESHES
+		Ref<Material> DefaultMaterial;
+		Ref<MaterialRegistry> DefaultMaterialRegistry;
 
+		// STATIC MESHES
 		// Main geometry for static meshes.
 		Ref<Pipeline> StaticMeshPipeline;
 		Ref<Material> StaticMeshMaterial;

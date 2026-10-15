@@ -203,7 +203,6 @@ namespace Saturn {
 		VkCommandBuffer m_CommandBuffer = nullptr;
 		// Default line width specified in Pipeline.cpp
 		float m_LineWidth = 2.0f;
-		bool m_Resized = false;
 
 		//////////////////////////////////////////////////////////////////////////
 		// VULKAN RESOURCES

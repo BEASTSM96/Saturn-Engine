@@ -246,31 +246,31 @@ namespace Saturn {
 			m_RendererData.StaticMeshMaterial = Ref<Material>::Create( m_RendererData.StaticMeshShader, "StaticMeshMat" );
 		}
 
-		if( m_RendererData.StaticMeshPipeline )
-			m_RendererData.StaticMeshPipeline = nullptr;
+		if( !m_RendererData.StaticMeshPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Static Meshes";
+			PipelineSpec.Shader = m_RendererData.StaticMeshShader;
+			PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tangent" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" },
+			};
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Static Meshes";
-		PipelineSpec.Shader = m_RendererData.StaticMeshShader;
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tangent" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" },
-		};
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-
-		m_RendererData.StaticMeshPipeline = m_GeometryPipelineCache->EmplaceNewPipeline( m_RendererData.StaticMeshShader->GetShaderHash(), PipelineSpec );
+			m_RendererData.StaticMeshPipeline = m_GeometryPipelineCache->EmplaceNewPipeline( m_RendererData.StaticMeshShader->GetShaderHash(), PipelineSpec );
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		// DYNAMIC MESHES
@@ -290,31 +290,42 @@ namespace Saturn {
 			}
 		}
 
-		if( m_RendererData.DynamicMeshPipeline )
-			m_RendererData.DynamicMeshPipeline = nullptr;
+		if( !m_RendererData.DynamicMeshPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Dynamic Meshes";
+			PipelineSpec.Shader = m_RendererData.DynamicMeshShader;
+			PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal"   },
+				{ ShaderDataType::Float3, "a_Tangent"  },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" },
+			};
+			PipelineSpec.AdditionalLayoutAtEnd = {
+				{ ShaderDataType::Int4,   "a_BoneIndices" },
+				{ ShaderDataType::Float4, "a_BoneWeights" }
+			};
 
-		PipelineSpec.Name = "Dynamic Meshes";
-		PipelineSpec.Shader = m_RendererData.DynamicMeshShader;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal"   },
-			{ ShaderDataType::Float3, "a_Tangent"  },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" },
-		};
-		PipelineSpec.AdditionalLayoutAtEnd = {
-			{ ShaderDataType::Int4,   "a_BoneIndices" },
-			{ ShaderDataType::Float4, "a_BoneWeights" }
-		};
+			m_RendererData.DynamicMeshPipeline = m_GeometryPipelineCache->EmplaceNewPipeline( m_RendererData.DynamicMeshShader->GetShaderHash(), PipelineSpec );
+		}
 
-		m_RendererData.DynamicMeshPipeline = m_GeometryPipelineCache->EmplaceNewPipeline( m_RendererData.DynamicMeshShader->GetShaderHash(), PipelineSpec );
+		if( !m_RendererData.DefaultMaterial )
+		{
+			m_RendererData.DefaultMaterial = Ref<Material>::Create( m_RendererData.StaticMeshShader, "DefMat" );
+
+			Ref<MaterialAsset> memoryOnlyMaterialAsset = Ref<MaterialAsset>::Create( m_RendererData.DefaultMaterial );
+			m_RendererData.DefaultMaterialRegistry = Ref<MaterialRegistry>::Create();
+			m_RendererData.DefaultMaterialRegistry->AddAsset( memoryOnlyMaterialAsset );
+		}
 	}
 
 	void SceneRenderer::InitDirShadowMap()
@@ -448,61 +459,59 @@ namespace Saturn {
 			m_RendererData.LightCullingMaterial = Ref<Material>::Create( m_RendererData.LightCullingShader, "LightCulling" );
 		}
 
-		if( m_RendererData.PreDepthPipeline ) 
+		if( !m_RendererData.PreDepthPipeline || !m_RendererData.PreDepthPipeline )
 		{
-			m_RendererData.PreDepthPipeline = nullptr;
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "PreDepth";
+			PipelineSpec.Shader = m_RendererData.PreDepthShader;
+			PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.DepthCompareOp = VK_COMPARE_OP_LESS;
+			PipelineSpec.HasColorAttachment = false;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tanget" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" }
+			};
+
+			m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
+
+			//////////////////////////////////////////////////////////////////////////
+			// Dynamic (Animated)
+			//////////////////////////////////////////////////////////////////////////
+
+			PipelineSpec.Name = "PreDepth-Dynamic";
+			PipelineSpec.Shader = m_RendererData.PreDepthDynamicShader;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal"   },
+				{ ShaderDataType::Float3, "a_Tangent"  },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" },
+			};
+			PipelineSpec.AdditionalLayoutAtEnd = {
+				{ ShaderDataType::Int4,   "a_BoneIndices" },
+				{ ShaderDataType::Float4, "a_BoneWeights" }
+			};
+
+			m_RendererData.PreDepthDynamicPipeline = Ref<Pipeline>::Create( PipelineSpec );
 		}
-
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "PreDepth";
-		PipelineSpec.Shader = m_RendererData.PreDepthShader;
-		PipelineSpec.RenderPass = m_RendererData.PreDepthPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.DepthCompareOp = VK_COMPARE_OP_LESS;
-		PipelineSpec.HasColorAttachment = false;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tanget" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" }
-		};
-
-		m_RendererData.PreDepthPipeline = Ref<Pipeline>::Create( PipelineSpec );
-
-		//////////////////////////////////////////////////////////////////////////
-		// Dynamic (Animated)
-		//////////////////////////////////////////////////////////////////////////
-
-		PipelineSpec.Name = "PreDepth-Dynamic";
-		PipelineSpec.Shader = m_RendererData.PreDepthDynamicShader;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal"   },
-			{ ShaderDataType::Float3, "a_Tangent"  },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" },
-		};
-		PipelineSpec.AdditionalLayoutAtEnd = {
-			{ ShaderDataType::Int4,   "a_BoneIndices" },
-			{ ShaderDataType::Float4, "a_BoneWeights" }
-		};
-
-		m_RendererData.PreDepthDynamicPipeline = Ref<Pipeline>::Create( PipelineSpec );
 
 		for( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i )
 		{
@@ -512,10 +521,8 @@ namespace Saturn {
 		//////////////////////////////////////////////////////////////////////////
 		// Light culling
 		//////////////////////////////////////////////////////////////////////////
-		if( m_RendererData.LightCullingPipeline )
-			m_RendererData.LightCullingPipeline = nullptr;
-
-		m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( m_RendererData.LightCullingShader );
+		if( !m_RendererData.LightCullingPipeline )
+			m_RendererData.LightCullingPipeline = Ref<ComputePipeline>::Create( m_RendererData.LightCullingShader );
 
 		m_RendererData.LightCullingMaterial->SetResource( "u_PreDepth", m_RendererData.PreDepthFramebuffer->GetDepthAttachmentResource() );
 	}
@@ -557,26 +564,22 @@ namespace Saturn {
 		}
 
 		m_RendererData.SceneCompositeMaterial->SetResource( "u_GeometryPassTexture", m_RendererData.GeometryFramebuffer->GetColorAttachmentsResources()[ 0 ] );
-
 		m_RendererData.SceneCompositeMaterial->SetResource( "u_BloomTexture", m_RendererData.BloomTextures[ 2 ].Texture );
 		m_RendererData.SceneCompositeMaterial->SetResource( "u_BloomDirtTexture", Renderer::Get()->GetPinkTexture() );
-
-//		BindSceneCompositeAOTexture();
-		
 		m_RendererData.SceneCompositeMaterial->SetResource( "u_DepthTexture", m_RendererData.GeometryFramebuffer->GetDepthAttachmentResource() );
 
-		if( m_RendererData.SceneCompositePipeline )
-			m_RendererData.SceneCompositePipeline = nullptr;
+		if( !m_RendererData.SceneCompositePipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Scene Composite";
+			PipelineSpec.Shader = m_RendererData.SceneCompositeShader;
+			PipelineSpec.RenderPass = m_RendererData.SceneComposite;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::None;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Scene Composite";
-		PipelineSpec.Shader = m_RendererData.SceneCompositeShader;
-		PipelineSpec.RenderPass = m_RendererData.SceneComposite;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-
-		m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SceneCompositePipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitLateComposite()
@@ -634,32 +637,32 @@ namespace Saturn {
 
 		m_RendererData.PhysicsOutlineMaterial = Ref<Material>::Create( m_RendererData.PhysicsOutlineShader, "PhysicsOutline" );
 
-		if( m_RendererData.PhysicsOutlinePipeline )
-			m_RendererData.PhysicsOutlinePipeline = nullptr;
+		if( !m_RendererData.PhysicsOutlinePipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Late Composite (PhysCollider)";
+			PipelineSpec.Shader = m_RendererData.PhysicsOutlineShader;
+			PipelineSpec.RenderPass = m_RendererData.LateCompositePass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_LINE;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tanget" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" }
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Late Composite (PhysCollider)";
-		PipelineSpec.Shader = m_RendererData.PhysicsOutlineShader;
-		PipelineSpec.RenderPass = m_RendererData.LateCompositePass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_LINE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tanget" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" }
-		};
-
-		m_RendererData.PhysicsOutlinePipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.PhysicsOutlinePipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitBloom()
@@ -669,11 +672,13 @@ namespace Saturn {
 			m_RendererData.BloomShader = ShaderLibrary::Get().FindOrLoad( "Bloom", "content/shaders/Bloom.glsl" );
 		}
 
-		m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
+		if( !m_RendererData.BloomComputePipeline )
+		{
+			m_RendererData.BloomComputePipeline = Ref<ComputePipeline>::Create( m_RendererData.BloomShader );
+			m_RendererData.BloomDirtTexture = Renderer::Get()->GetPinkTexture();
+		}
 
 		CreateBloomMaterials();
-
-		m_RendererData.BloomDirtTexture = Renderer::Get()->GetPinkTexture();
 	}
 
 	void SceneRenderer::InitTexturePass()
@@ -690,22 +695,22 @@ namespace Saturn {
 
 		m_RendererData.TexturePassMaterial->SetResource( "u_InputTexture", m_RendererData.SceneCompositeFramebuffer->GetColorAttachmentsResources()[ 0 ] );
 
-		if( m_RendererData.TexturePassPipeline )
-			m_RendererData.TexturePassPipeline = nullptr;
+		if( !m_RendererData.TexturePassPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Texture Pass";
+			PipelineSpec.Shader = m_RendererData.TexturePassShader;
+			PipelineSpec.RenderPass = VulkanContext::Get()->GetDefaultPass();
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::None;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Texture Pass";
-		PipelineSpec.Shader = m_RendererData.TexturePassShader;
-		PipelineSpec.RenderPass = VulkanContext::Get()->GetDefaultPass();
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		m_RendererData.TexturePassPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.TexturePassPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitSSAO()
@@ -818,24 +823,24 @@ namespace Saturn {
 			m_RendererData.SSAOFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( m_RendererData.SSAOPipeline )
-			m_RendererData.SSAOPipeline = nullptr;
+		if( !m_RendererData.SSAOPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "SSAO";
+			PipelineSpec.Shader = m_RendererData.SSAOShader;
+			PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::None;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
+			PipelineSpec.EnableBlending = false;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "SSAO";
-		PipelineSpec.Shader = m_RendererData.SSAOShader;
-		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
-		PipelineSpec.EnableBlending = false;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		m_RendererData.SSAOPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SSAOPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitHBAO()
@@ -940,24 +945,24 @@ namespace Saturn {
 			m_RendererData.AOBlurFramebuffer = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( m_RendererData.AOBlurPipeline )
-			m_RendererData.AOBlurPipeline = nullptr;
+		if( !m_RendererData.AOBlurPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "AO-Blur";
+			PipelineSpec.Shader = m_RendererData.SSAOBlurShader;
+			PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::None;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
+			PipelineSpec.EnableBlending = false;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "AO-Blur";
-		PipelineSpec.Shader = m_RendererData.SSAOBlurShader;
-		PipelineSpec.RenderPass = m_RendererData.SSAORenderPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
-		PipelineSpec.EnableBlending = false;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		m_RendererData.AOBlurPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.AOBlurPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitSelectionPass()
@@ -997,44 +1002,63 @@ namespace Saturn {
 
 		m_RendererData.SelectedGeometryMaterial = Ref<Material>::Create( m_RendererData.SelectionShader, "SelectedGeometry" );
 
-		if( m_RendererData.SelectedGeometryPipeline )
-			m_RendererData.SelectedGeometryPipeline = nullptr;
+		if( !m_RendererData.SelectedGeometryPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Selected Geometry";
+			PipelineSpec.Shader = m_RendererData.SelectionShader;
+			PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tanget" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" }
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Selected Geometry";
-		PipelineSpec.Shader = m_RendererData.SelectionShader;
-		PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tanget" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-		PipelineSpec.InstanceLayout = {
-			{ ShaderDataType::Float4, "a_TransformBufferR1" },
-			{ ShaderDataType::Float4, "a_TransformBufferR2" },
-			{ ShaderDataType::Float4, "a_TransformBufferR3" },
-			{ ShaderDataType::Float4, "a_TransformBufferR4" }
-		};
-
-		m_RendererData.SelectedGeometryPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SelectedGeometryPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 
 		if( !m_RendererData.SelectedGeometryDynamicPipeline )
-			m_RendererData.SelectedGeometryDynamicPipeline = nullptr;
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Selected Geometry (Dynamic)";
+			PipelineSpec.Shader = m_RendererData.SelectionDynamicShader;
+			PipelineSpec.RenderPass = m_RendererData.SelectedGeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tanget" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
+			PipelineSpec.InstanceLayout = {
+				{ ShaderDataType::Float4, "a_TransformBufferR1" },
+				{ ShaderDataType::Float4, "a_TransformBufferR2" },
+				{ ShaderDataType::Float4, "a_TransformBufferR3" },
+				{ ShaderDataType::Float4, "a_TransformBufferR4" }
+			};
+			PipelineSpec.AdditionalLayoutAtEnd = {
+				{ ShaderDataType::Int4,   "a_BoneIndices" },
+				{ ShaderDataType::Float4, "a_BoneWeights" }
+			};
 
-		PipelineSpec.Name = "Selected Geometry (Dynamic)";
-		PipelineSpec.Shader = m_RendererData.SelectionDynamicShader;
-		PipelineSpec.AdditionalLayoutAtEnd = {
-			{ ShaderDataType::Int4,   "a_BoneIndices" },
-			{ ShaderDataType::Float4, "a_BoneWeights" }
-		};
-
-		m_RendererData.SelectedGeometryDynamicPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SelectedGeometryDynamicPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitJumpFlood()
@@ -1085,25 +1109,25 @@ namespace Saturn {
 			m_RendererData.JumpFloodFirstPassFB = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( m_RendererData.JumpFloodFirstPipeline )
-			m_RendererData.JumpFloodFirstPipeline = nullptr;
+		if( !m_RendererData.JumpFloodFirstPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "JumpFloodFirst";
+			PipelineSpec.Shader = m_RendererData.JmpFloodFirstShader;
+			PipelineSpec.RenderPass = m_RendererData.JumpFloodFirstPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.DepthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+			PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "JumpFloodFirst";
-		PipelineSpec.Shader = m_RendererData.JmpFloodFirstShader;
-		PipelineSpec.RenderPass = m_RendererData.JumpFloodFirstPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
-		PipelineSpec.DepthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
-		PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		m_RendererData.JumpFloodFirstPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.JumpFloodFirstPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 
 		m_RendererData.JumpFloodFirstMaterial->SetResource( "u_InputTexture", m_RendererData.SelectedGeometryFramebuffer->GetColorAttachmentsResources()[ 0 ] );
 	}
@@ -1138,25 +1162,25 @@ namespace Saturn {
 			m_RendererData.JumpFloodEvenFB = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( m_RendererData.JumpFloodEvenPipeline )
-			m_RendererData.JumpFloodEvenPipeline = nullptr;
+		if( !m_RendererData.JumpFloodEvenPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "JumpFloodEvenPass";
+			PipelineSpec.Shader = m_RendererData.JmpFloodEvenShader;
+			PipelineSpec.RenderPass = m_RendererData.JumpFloodEvenPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.DepthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+			PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "JumpFloodEvenPass";
-		PipelineSpec.Shader = m_RendererData.JmpFloodEvenShader;
-		PipelineSpec.RenderPass = m_RendererData.JumpFloodEvenPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
-		PipelineSpec.DepthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
-		PipelineSpec.BlendMode = PipelineBlendMode::OneZero;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		m_RendererData.JumpFloodEvenPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.JumpFloodEvenPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 
 		m_RendererData.JumpFloodEvenMaterial->SetResource( "u_InputTexture", m_RendererData.JumpFloodFirstPassFB->GetColorAttachmentsResources()[ 0 ] );
 	}
@@ -1195,23 +1219,23 @@ namespace Saturn {
 			m_RendererData.JumpFloodOddFB = Ref<Framebuffer>::Create( FBSpec );
 		}
 
-		if( m_RendererData.JumpFloodOddPipeline )
-			m_RendererData.JumpFloodOddPipeline = nullptr;
+		if( !m_RendererData.JumpFloodOddPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "JumpFloodOddPass";
+			PipelineSpec.Shader = m_RendererData.JmpFloodOddShader;
+			PipelineSpec.RenderPass = m_RendererData.JumpFloodOddPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "JumpFloodOddPass";
-		PipelineSpec.Shader = m_RendererData.JmpFloodOddShader;
-		PipelineSpec.RenderPass = m_RendererData.JumpFloodOddPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		m_RendererData.JumpFloodOddPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.JumpFloodOddPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 
 		m_RendererData.JumpFloodOddMaterial->SetResource( "u_InputTexture", m_RendererData.JumpFloodEvenFB->GetColorAttachmentsResources()[ 0 ] );
 	}
@@ -1331,20 +1355,23 @@ namespace Saturn {
 		m_RendererData.SMAACompMaterial = Ref<Material>::Create( m_RendererData.SMAACompositionShader, "SMAABlending" );
 		m_RendererData.SMAACompMaterial->SetResource( "u_SMAAOutTexture", m_RendererData.SMAAFinalOutImage );
 
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Late Composite (SMAA)";
-		PipelineSpec.Shader = m_RendererData.SMAACompositionShader;
-		PipelineSpec.RenderPass = m_RendererData.SMAACompPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
+		if( !m_RendererData.SMAACompPipeline )
+		{
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Late Composite (SMAA)";
+			PipelineSpec.Shader = m_RendererData.SMAACompositionShader;
+			PipelineSpec.RenderPass = m_RendererData.SMAACompPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.PolygonMode = VK_POLYGON_MODE_FILL;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
 
-		m_RendererData.SMAACompPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SMAACompPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitGTAOPass()
@@ -1714,23 +1741,23 @@ namespace Saturn {
 			}
 		}
 
-		if( m_RendererData.GridPipeline )
-			m_RendererData.GridPipeline = nullptr;
+		if( !m_RendererData.GridPipeline )
+		{
+			// Grid pipeline spec.
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Grid";
+			PipelineSpec.Shader = m_RendererData.GridShader;
+			PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::None;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+			};
 
-		// Grid pipeline spec.
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Grid";
-		PipelineSpec.Shader = m_RendererData.GridShader;
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::None;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-		};
-
-		m_RendererData.GridPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.GridPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1749,23 +1776,23 @@ namespace Saturn {
 			m_RendererData.PreethamMaterial = Ref<Material>::Create( m_RendererData.PreethamShader, "PreethamMat" );
 		}
 
-		if( m_RendererData.SkyboxPipeline )
-			m_RendererData.SkyboxPipeline = nullptr;
+		if( !m_RendererData.SkyboxPipeline )
+		{
+			// Create pipeline.
+			PipelineSpecification PipelineSpec = {};
+			PipelineSpec.Name = "Skybox";
+			PipelineSpec.Shader = m_RendererData.SkyboxShader;
+			PipelineSpec.RenderPass = m_RendererData.GeometryPass;
+			PipelineSpec.UseDepthTest = true;
+			PipelineSpec.CullMode = CullMode::Back;
+			PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
+			PipelineSpec.VertexLayout = {
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
+			};
 
-		// Create pipeline.
-		PipelineSpecification PipelineSpec = {};
-		PipelineSpec.Name = "Skybox";
-		PipelineSpec.Shader = m_RendererData.SkyboxShader;
-		PipelineSpec.RenderPass = m_RendererData.GeometryPass;
-		PipelineSpec.UseDepthTest = true;
-		PipelineSpec.CullMode = CullMode::Back;
-		PipelineSpec.FrontFace = VK_FRONT_FACE_CLOCKWISE;
-		PipelineSpec.VertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		m_RendererData.SkyboxPipeline = Ref<Pipeline>::Create( PipelineSpec );
+			m_RendererData.SkyboxPipeline = Ref<Pipeline>::Create( PipelineSpec );
+		}
 	}
 
 	void SceneRenderer::InitGeneralUseComponents()

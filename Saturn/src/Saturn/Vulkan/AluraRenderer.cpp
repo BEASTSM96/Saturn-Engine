@@ -234,7 +234,7 @@ namespace Saturn {
 
 	void AluraRenderer::OnResize()
 	{
-		InitPhase2();
+		m_Projection = glm::ortho( 0.0f, ( float ) m_Width, ( float ) m_Height, 0.0f );
 	}
 
 	void AluraRenderer::RenderProper()
