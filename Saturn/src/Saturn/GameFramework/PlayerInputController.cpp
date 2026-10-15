@@ -132,6 +132,10 @@ namespace Saturn {
 			
 			m_ActionMap[ rBindingName ].emplace_back( rBindingData, state, rFunction );
 		}
+		else
+		{
+			SAT_CORE_WARN( "[PlayerInputController]: Could not find {} in action mapping list! Please double check the name and make sure it exists in the project settings.", rBindingName );
+		}
 	}
 
 	void PlayerInputController::RemoveAction( const std::string& rBindingName )
