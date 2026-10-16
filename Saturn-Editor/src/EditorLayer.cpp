@@ -1075,7 +1075,7 @@ namespace Saturn {
 	{
 		switch( rEvent.GetKeycode() )
 		{
-            default: break;
+			default: break;
 
 			case RubyKey_Delete:
 			{
@@ -1162,8 +1162,8 @@ namespace Saturn {
 		{
 			switch( rEvent.GetKeycode() )
 			{
-                default: break;
-                    
+				default: break;
+					
 				case RubyKey_D:
 				{
 					const auto selections = m_SelectionManager->GetSelectionContexts( g_ActiveScene );
@@ -1239,7 +1239,7 @@ namespace Saturn {
 			{
 				switch( rEvent.GetKeycode() )
 				{
-                    default: break;
+					default: break;
 					case RubyKey_S:
 					{
 						SaveFileAs();
@@ -1956,7 +1956,13 @@ namespace Saturn {
 				const std::string id = "##" + std::to_string( rBinding.ID );
 
 				ImGui::SetNextItemWidth( 130.0f );
-				Auxiliary::InputText( id.data(), &rBinding.Name );
+				if( Auxiliary::InputText( id.data(), &rBinding.Name ) )
+				{
+					// Not great, because what if we modify the name but it's the same
+					// as it was before?
+					// then saving would be unnecessary but this works sooo.
+					shouldSaveProject = true;
+				}
 
 				ImGui::SameLine(); // HACK, There seems to bug with the ImGui Layout as the InputText works fine when it's not in a Horizontal layout. (Update) Seems to be with certain IDs/labels
 
@@ -5218,7 +5224,7 @@ namespace Saturn {
 		switch( rInfo.NotificationType )
 		{
 			// TODO: Create info texture.
-            default:
+			default:
 			case MessageBoxType::Information:
 			case MessageBoxType::Warning:
 			{
