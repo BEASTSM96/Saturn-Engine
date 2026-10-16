@@ -116,8 +116,8 @@ namespace Saturn {
 		glm::quat GetLocalRotationQuat() const { return GetComponent<TransformComponent>().GetRotation(); }
 		glm::vec3 GetLocalScale() const { return GetComponent<TransformComponent>().Scale; }
 
-		void SetPosition( const glm::vec3& rPosition ) { GetComponent<TransformComponent>().Position = rPosition; }
-		void SetRotation( const glm::vec3& rRotatonEuler ) { GetComponent<TransformComponent>().SetRotation( rRotatonEuler ); }
+		void SetPosition( const glm::vec3& rPosition );
+		void SetRotation( const glm::vec3& rRotatonEuler );
 		void SetScale( const glm::vec3& rScale ) { GetComponent<TransformComponent>().Scale = rScale; }
 
 		void SetName( const std::string& rName );

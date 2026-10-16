@@ -32,6 +32,9 @@
 
 #include "Saturn/Serialisation/Raw/RawEntitySerialisation.h"
 
+#include "Saturn/Physics/PhysicsShapes.h"
+#include "Saturn/Physics/PhysicsCharacterController.h"
+
 namespace Saturn {
 
 	Entity::Entity()
@@ -89,6 +92,31 @@ namespace Saturn {
 	bool Entity::Valid() const
 	{
 		return m_EntityHandle != entt::null || m_Scene->m_Registry.valid( m_EntityHandle );
+	}
+
+	void Entity::SetPosition( const glm::vec3& rPosition )
+	{
+		if( auto* pMovementComp = TryGetComponent<CharacterMovementComponent>(); pMovementComp )
+		{
+			pMovementComp->CharacterMovement->StopMovementImmediately();
+			pMovementComp->CharacterMovement->Teleport( rPosition );
+		}
+		else
+		{
+			GetComponent<TransformComponent>().Position = rPosition;
+		}
+	}
+
+	void Entity::SetRotation( const glm::vec3& rRotatonEuler )
+	{
+		if( auto* pMovementComp = TryGetComponent<CharacterMovementComponent>(); pMovementComp )
+		{
+			pMovementComp->CharacterMovement->Rotate( glm::quat( rRotatonEuler ) );
+		}
+		else
+		{
+			GetComponent<TransformComponent>().SetRotation( rRotatonEuler );
+		}
 	}
 
 	void Entity::SetName( const std::string& rName )
