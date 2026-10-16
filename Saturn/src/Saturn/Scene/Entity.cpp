@@ -98,8 +98,22 @@ namespace Saturn {
 	{
 		if( auto* pMovementComp = TryGetComponent<CharacterMovementComponent>(); pMovementComp )
 		{
-			pMovementComp->CharacterMovement->StopMovementImmediately();
-			pMovementComp->CharacterMovement->Teleport( rPosition );
+			// The movement component may not have a valid physics movement
+			// this is because the component may exist in the editor but 
+			// the physics part only exists during runtime.
+			if( auto* pPhysMovement = pMovementComp->CharacterMovement; pPhysMovement )
+			{
+				pPhysMovement->StopMovementImmediately();
+				pPhysMovement->Teleport( rPosition );
+			}
+			else
+			{
+				// Yes, this could be removed and we could always call this
+				// even if we are a physics object but doing so is pointless
+				// because the position of this object will be set when the
+				// PhysicsScene updates.
+				GetComponent<TransformComponent>().Position = rPosition;
+			}
 		}
 		else
 		{
@@ -111,7 +125,14 @@ namespace Saturn {
 	{
 		if( auto* pMovementComp = TryGetComponent<CharacterMovementComponent>(); pMovementComp )
 		{
-			pMovementComp->CharacterMovement->Rotate( glm::quat( rRotatonEuler ) );
+			if( auto* pPhysMovement = pMovementComp->CharacterMovement; pPhysMovement )
+			{
+				pPhysMovement->Rotate( glm::quat( rRotatonEuler ) );
+			}
+			else
+			{
+				GetComponent<TransformComponent>().Position = rRotatonEuler;
+			}
 		}
 		else
 		{
