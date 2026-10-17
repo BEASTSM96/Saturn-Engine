@@ -65,7 +65,7 @@ namespace Saturn {
 		virtual void SetIcon( Ref<class Texture2D> icon ) override;
 
 		void ResizeWindow( uint32_t Width, uint32_t Height ) override;
-		RubyIVec2 GetSize() override;
+		virtual RubyIVec2 GetSize() const override;
 
 		void MoveWindow( int x, int y ) override;
 
@@ -95,6 +95,9 @@ namespace Saturn {
 		bool MouseInRect() override;
 
 		void FlashAttention() override;
+
+		virtual RubyVec2 GetFramebufferScale() const override;
+		virtual RubyIVec2 GetFramebufferSize() const override;
 
 	public:
 		void BlockMouseCursor() { m_BlockMouseCursor = true; }

@@ -886,7 +886,7 @@ namespace Saturn {
 		xcb_configure_window( m_pConnection, m_Handle, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values );
 	}
 
-	RubyIVec2 RubyXcbBackend::GetSize()
+	RubyIVec2 RubyXcbBackend::GetSize() const
 	{
 		const auto geoReq = xcb_get_geometry( m_pConnection, m_Handle );
 		auto* pGeo = xcb_get_geometry_reply(m_pConnection, geoReq, NULL);
@@ -975,6 +975,15 @@ namespace Saturn {
 		return {};
 	}
 
+	RubyVec2 RubyXcbBackend::GetFramebufferScale() const
+	{
+		return { 1, 1 };
+	}
+
+	RubyIVec2 RubyXcbBackend::GetFramebufferSize() const
+	{
+		return GetSize();
+	}
 }
 
 #endif

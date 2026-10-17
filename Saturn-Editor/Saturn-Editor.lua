@@ -220,7 +220,7 @@ project "Saturn-Editor"
 			AppendPkgConfigLibraries("gtk+-3.0")
 		end
 
-		filter { "system:linux", "configurations:Debug" }
+		filter { "system:linux", "configurations:Debug or configurations:Debug-ASan" }
 			links
 			{
 				"assimp",
