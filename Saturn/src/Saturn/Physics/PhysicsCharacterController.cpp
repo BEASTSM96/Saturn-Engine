@@ -214,6 +214,7 @@ namespace Saturn {
 	void PhysicsCharacterController::StopMovementImmediately()
 	{
 		m_Controller->SetLinearVelocity( JPH::Vec3( 0.0f, 0.0f, 0.0f ) );
+		m_Displacement = {};
 	}
 
 	void PhysicsCharacterController::Teleport( const glm::vec3& rPosition )
