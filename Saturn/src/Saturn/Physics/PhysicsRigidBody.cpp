@@ -54,7 +54,7 @@ namespace Saturn {
 		const RigidbodyComponent& rb = m_Entity->GetComponent<RigidbodyComponent>();
 		const TransformComponent& tc = m_Entity->GetComponent<TransformComponent>();
 
-		const auto& rWorldSpacePos = m_Entity->GetScene()->GetWorldSpaceTransform( m_Entity ).Position;
+		const auto& rWorldSpaceTs = m_Entity->GetScene()->GetWorldSpaceTransform( m_Entity );
 
 		// Normal Collider Component's have more priority over the static mesh.
 		if( m_Entity->HasComponent<BoxColliderComponent>() )
@@ -92,8 +92,8 @@ namespace Saturn {
 		// Create body after the shape.
 		JPH::BodyCreationSettings settings(
 			m_Shape->GetShape(),
-			Auxiliary::GLMToJolt( rWorldSpacePos ),
-			Auxiliary::GLMQToJoltQ( glm::normalize( tc.GetRotation() ) ),
+			Auxiliary::GLMToJolt( rWorldSpaceTs.Position ),
+			Auxiliary::GLMQToJoltQ( glm::normalize( rWorldSpaceTs.GetRotation() ) ),
 			( JPH::EMotionType ) m_Type,
 			m_Type == PhysicsRigidBodyType::Static ? PhysLayerNotMoving : PhysLayerMoving
 		);
