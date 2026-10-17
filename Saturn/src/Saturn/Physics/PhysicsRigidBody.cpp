@@ -84,9 +84,10 @@ namespace Saturn {
 		}
 
 		// The settings might of changed, so update in case.
-		if( m_Shape->GetType() == PhysicsShapeType::TriangleMesh )
+		if( m_Shape->GetType() == PhysicsShapeType::TriangleMesh && m_Type == PhysicsRigidBodyType::Dynamic )
 		{
 			m_Type = PhysicsRigidBodyType::Static;
+			SAT_CORE_WARN( "[PhysicsRigidBody]: JoltPhysics only supports triangle mesh shapes as kinematic or static! Setting body type to static." );
 		}
 
 		// Create body after the shape.
@@ -226,8 +227,7 @@ namespace Saturn {
 		if( lock.Succeeded() )
 		{
 			JPH::Body& rBody = lock.GetBody();
-
-			settings.mPosition2 = rBody.GetPosition();
+			settings.mPosition1 = settings.mPosition2 = rBody.GetCenterOfMassPosition();
 
 			m_DOFConstraint = static_cast< JPH::SixDOFConstraint* >( settings.Create( JPH::Body::sFixedToWorld, rBody ) );
 
@@ -419,7 +419,6 @@ namespace Saturn {
 			case PhysicsRigidBodyType::Dynamic:
 			{
 				TransformComponent& tc = m_Entity->GetComponent<TransformComponent>();
-
 				tc.Position = GetPosition();
 
 				if( !AllRotationLocked() )
