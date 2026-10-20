@@ -282,7 +282,7 @@ namespace Saturn {
 		xcb_create_window(m_pConnection,
 							XCB_COPY_FROM_PARENT,
 							m_Handle,
-							screen->root,
+							ParentHWND,
 							0, 0,
 							m_WindowSpecification.Width, m_WindowSpecification.Height,
 							10,
@@ -471,9 +471,6 @@ namespace Saturn {
 
 					const int x = ev->event_x;
 					const int y = ev->event_y;
-					
-					SAT_CORE_INFO( "X: {0} Y: {1}", x, y );
-					SAT_CORE_INFO( "ZX: {0} ZY: {1}", ev->root_x, ev->root_y );
 
 					if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
 					{
@@ -536,7 +533,7 @@ namespace Saturn {
 					xcb_keysym_t keysym = xcb_key_symbols_get_keysym( pThis->GetSymbols(), ev->detail, 0 );
 					const RubyKey saturnKey = ConvertX11KeycodeToRuby( ev->detail );
 					
-					SAT_CORE_INFO( "Saturn Key: {0}", (uint32_t)ev->detail );
+					//SAT_CORE_INFO( "Saturn Key: {0}", (uint32_t)ev->detail );
 
 					if( keysym ) 
 					{
@@ -552,7 +549,7 @@ namespace Saturn {
 				
 				case XCB_KEY_RELEASE: 
 				{
-					xcb_key_press_event_t *ev = (xcb_key_press_event_t *)pEvent;
+					xcb_key_release_event_t *ev = (xcb_key_release_event_t *)pEvent;
 
 					xcb_window_t XcbWindow = ev->event;
 					auto* pThis = RubyLibrary::Get().FindWindowFromXcbHnd( XcbWindow );
@@ -573,6 +570,11 @@ namespace Saturn {
 
 	void RubyXcbBackend::FindMouseRestorePoint()
 	{
+		if( m_pWindow->GetLastCursorMode() < RubyCursorMode::Locked ) 
+		{
+			const auto mousePos = GetMousePos();
+			m_MouseRestorePoint = { ( int ) mousePos.x, ( int ) mousePos.y };
+		}
 	}
 
 	void RubyXcbBackend::SetResizeCursor( RubyCursorType Type )
@@ -812,14 +814,69 @@ namespace Saturn {
 
 	void RubyXcbBackend::SetMouseCursor( RubyCursorType Cursor, RubyMouseCursorSetReason Reason )
 	{
+		switch( Cursor ) 
+		{
+			case RubyCursorType::None:
+			{
+
+			} break;
+
+			case RubyCursorType::Arrow:
+			{
+
+			} break;
+		}
+
+		UpdateCursorIcon();
 	}
 
 	void RubyXcbBackend::UpdateCursorIcon()
 	{
+		if( m_pWindow->GetCursorMode() == RubyCursorMode::Locked ) 
+		{
+
+		}
+		else
+		{
+			// Fall back to the default cursor.
+		}
 	}
 
 	void RubyXcbBackend::SetMouseCursorMode( RubyCursorMode mode )
 	{
+		switch( mode )
+		{
+			case RubyCursorMode::Normal:
+			{
+				if( m_pWindow->GetLastCursorMode() == RubyCursorMode::Locked )
+				{
+					SetMousePos( m_MouseRestorePoint.x, m_MouseRestorePoint.y );
+
+					m_MouseRestorePoint = {};
+					m_pWindow->m_LockedMousePosition = {};
+
+					// Unhide cursor.
+					// TODO
+				}
+
+				SetMouseCursor( RubyCursorType::Arrow );
+			} break;
+
+			case RubyCursorMode::Hidden:
+			{
+				// Hide
+			} break;
+
+			case RubyCursorMode::Locked:
+			{
+				if( !Focused() )
+					break;
+
+				GetParent()->IntrnlSetLockedMousePos( GetMousePos().To<RubyIVec2>() );
+
+				DisableCursor();
+			} break;
+		}
 	}
 
 	void RubyXcbBackend::SetMousePos( double x, double y )
@@ -842,10 +899,10 @@ namespace Saturn {
 
 		xcb_translate_coordinates_cookie_t cookie = xcb_translate_coordinates(
 			m_pConnection,
-			screen->root,  // Source: Root Window
-			m_Handle,      // Destination: Your Window
-			reply->root_x, // Root X (from event)
-			reply->root_y  // Root Y (from event)
+			screen->root,
+			m_Handle,
+			reply->root_x,
+			reply->root_y
 		);
 
 		xcb_translate_coordinates_reply_t* tsReply = xcb_translate_coordinates_reply(
@@ -884,6 +941,7 @@ namespace Saturn {
 	{
 		uint32_t values[] = { Width, Height };
 		xcb_configure_window( m_pConnection, m_Handle, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values );
+		xcb_flush( m_pConnection );
 	}
 
 	RubyIVec2 RubyXcbBackend::GetSize() const
@@ -898,6 +956,7 @@ namespace Saturn {
 	{
 		uint32_t values[] = { (uint32_t)x, (uint32_t)y };
 		xcb_configure_window( m_pConnection, m_Handle, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values );
+		xcb_flush( m_pConnection );
 	}
 
 	void RubyXcbBackend::PollEvents()
@@ -926,9 +985,9 @@ namespace Saturn {
 
 		xcb_translate_coordinates_cookie_t cookie = xcb_translate_coordinates(
 			m_pConnection,
-			m_Handle,       // Source window
-			screen->root, // Destination window (desktop)
-			0, 0          // Point (0,0) in your window
+			m_Handle,
+			screen->root,
+			0, 0
 		);
 
 		xcb_translate_coordinates_reply_t* reply = xcb_translate_coordinates_reply(m_pConnection, cookie, NULL);

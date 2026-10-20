@@ -40,7 +40,7 @@ namespace Saturn {
 	{
 	public:
 		RubyXcbBackend( const RubyWindowSpecification& rSpec, RubyWindow* pWindow );
-		~RubyXcbBackend();
+		virtual ~RubyXcbBackend();
 
 		RubyWindow* GetParent() { return m_pWindow; }
 
@@ -126,6 +126,7 @@ namespace Saturn {
 
 		// For disabled mouse mode.
 		RubyIVec2 m_MouseRestorePoint{};
+		RubyVec2 m_LockedMouseDelta{};
 		RubyCursorType m_CurrentCursorType = RubyCursorType::None;
 
 		bool m_MouseTracked = false;
