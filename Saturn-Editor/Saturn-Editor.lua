@@ -175,6 +175,13 @@ project "Saturn-Editor"
 		systemversion "latest"
 		linkgroups "On"
 
+		runpathdirs 
+		{
+			"%{cfg.targetdir}",
+			os.getenv('VULKAN_SDK') .. "/lib",
+			"../Saturn/vendor/assimp/bin/"
+		}
+
 		defines
 		{
 			"SAT_PLATFORM_LINUX"
