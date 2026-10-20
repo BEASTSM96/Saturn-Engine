@@ -107,6 +107,12 @@ project "Saturn-ProjectBrowser"
 
 	filter "system:linux"
 		systemversion "latest"
+		runpathdirs 
+		{
+			"%{cfg.targetdir}",
+			os.getenv('VULKAN_SDK') .. "/lib",
+			"../Saturn/vendor/assimp/bin/"
+		}
 
 		defines
 		{
