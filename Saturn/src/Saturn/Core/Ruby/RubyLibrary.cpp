@@ -84,10 +84,9 @@ namespace Saturn {
 		: m_pMacOSData( new RubyNSApplicationData() )
 #endif
 	{
-#if defined( SAT_PLATFORM_WINDOWS )
 		GetAllMonitors();
-#elif defined( SAT_PLATFORM_MACOS )
-		GetAllMonitors();
+
+#if defined( SAT_PLATFORM_MACOS )
 		m_pMacOSData->Init();
 #endif
 	}
@@ -133,7 +132,13 @@ namespace Saturn {
 			::EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, userData );
 		}
 #elif defined(SAT_PLATFORM_LINUX)
-		xcb_window_t rootWindow = m_Windows.begin()->second->GetNativeHandle();
+		// Open XCB connection.
+		SAT_CORE_ASSERT( TryOpenConnection() );
+
+		const xcb_setup_t* pSetup = xcb_get_setup( m_pConnection );
+		xcb_screen_iterator_t iter = xcb_setup_roots_iterator( pSetup );
+
+		xcb_window_t rootWindow = iter.data->root;
 		xcb_randr_get_monitors_cookie_t cookie = xcb_randr_get_monitors( m_pConnection, rootWindow, 1 );
 
 		xcb_randr_get_monitors_reply_t* reply = xcb_randr_get_monitors_reply( m_pConnection, cookie, nullptr );
