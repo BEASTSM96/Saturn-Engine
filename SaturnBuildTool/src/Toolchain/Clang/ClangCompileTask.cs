@@ -50,7 +50,7 @@ namespace SaturnBuildTool
             {
                 case ArchitectureKind.x86_64:
                     {
-                        Args.Add( " -arch x86_64" );
+                        Args.Add( " -m64" );
                     } break;
 
                 case ArchitectureKind.AArch64:
