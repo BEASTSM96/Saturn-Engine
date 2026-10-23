@@ -55,10 +55,12 @@ namespace SaturnBuildTool
                 Args.Add( string.Format( " -L\"{0}\" ", libPath ) );
             }
 
+            Args.Add( " -Wl,--start-group" );
             foreach( string link in LinkSettings.Links )
             {
                 Args.Add( string.Format( " -l\"{0}\"", link ) );
             }
+            Args.Add( " -Wl,--end-group" );
 
             foreach( string rpath in LinkSettings.RTLibraryPaths )
             {

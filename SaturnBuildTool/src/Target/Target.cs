@@ -66,6 +66,14 @@ namespace SaturnBuildTool
                 RTLibraryPaths.Add( "/usr/local/lib" );
                 RTLibraryPaths.Add( "/lib" );
                 RTLibraryPaths.Add( "'$ORIGIN'" );
+
+                string saturnDir = Shared.ProjectInfo.SaturnDir;
+                RTLibraryPaths.Add( Path.Combine( saturnDir, "Saturn/vendor/assimp/bin" ) );
+
+                string binPath = Path.Combine( saturnDir, "bin" );
+                binPath = Path.Combine( binPath, VendorBinaries.GetRootBinPath( binPath ), "Saturn-SharedStorage" );
+
+                RTLibraryPaths.Add( binPath );
             }
         }
 
