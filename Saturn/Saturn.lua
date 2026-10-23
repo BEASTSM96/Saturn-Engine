@@ -134,6 +134,7 @@ project "Saturn"
 		
 	filter "system:linux"
 		systemversion "latest"
+		pic "On"
 
 		links 
 		{
@@ -151,8 +152,6 @@ project "Saturn"
 			"SAT_PLATFORM_LINUX"
 		}
 
-		buildoptions { "-fno-ms-extensions", "-Wno-changes-meaning", "-fpermissive" }
-		
 		filter { "options:onlineapi=steam", "system:linux" }
 			links
 			{
