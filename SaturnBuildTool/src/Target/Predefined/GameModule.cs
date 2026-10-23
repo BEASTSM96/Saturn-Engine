@@ -79,14 +79,29 @@ namespace SaturnBuildTool
             // Use Saturn PCH
             PCH = new PCHInfo( "sppch.h", Path.Combine( saturnDir, "Saturn/src/sppch.cpp" ) );
 
-            // LIBARIES
+            // SYSTEM LIBARIES
             switch(Shared.Platform.PlatformType)
             {
                 default:
                 case PlatformType.Windows:
-                case PlatformType.Linux:
                     {
                         Links.Add( "vulkan-1" );
+                    } break;
+
+                case PlatformType.Linux:
+                    {
+                        Links.AddRange( new string[] { 
+                            "vulkan", 
+                            "xcb", 
+                            "dl", 
+                            "m", 
+                            "xcb-randr", 
+                            "pthread", 
+                            "Xrandr", 
+                            "xcb-keysyms",
+                            "assimp",
+                            "SPIRV",
+                            "shaderc_shared" } );
                     } break;
 
                 case PlatformType.MacApple:
@@ -180,6 +195,7 @@ namespace SaturnBuildTool
                     }
                 } break;
 
+                case PlatformType.Linux:
                 case PlatformType.MacApple:
                     {
                         if( Shared.ProjectInfo.CurrentConfigKind != ConfigKind.Dist )

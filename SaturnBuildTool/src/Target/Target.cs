@@ -56,9 +56,17 @@ namespace SaturnBuildTool
                 PreprocessorDefines.AddRange( new string[] { "SAT_PLATFORM_MACOS" } );
                 RTLibraryPaths.Add( "/System/Library/Frameworks" );
                 RTLibraryPaths.Add( "/System/Library/PrivateFrameworks" );
+                RTLibraryPaths.Add( "@loader_path" );
             }
 
-            RTLibraryPaths.Add( "@loader_path" );
+            if( Shared.Platform.PlatformType == PlatformType.Linux )
+            {
+                PreprocessorDefines.AddRange( new string[] { "SAT_PLATFORM_LINUX" } );
+                RTLibraryPaths.Add( "/usr/lib" );
+                RTLibraryPaths.Add( "/usr/local/lib" );
+                RTLibraryPaths.Add( "/lib" );
+                RTLibraryPaths.Add( "'$ORIGIN'" );
+            }
         }
 
         public List<string> GetIntermediateFiles()
