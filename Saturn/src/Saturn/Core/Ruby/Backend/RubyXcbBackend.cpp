@@ -187,6 +187,11 @@ static int HandleKeyMods( uint16_t state )
 		Modifiers |= Saturn::RubyKey_LeftShift;
 	}
 
+	if( state & XCB_MOD_MASK_LOCK )
+	{
+		Modifiers |= Saturn::RubyKey_CapsLock;
+	}
+
 	if( state & XCB_MOD_MASK_1 )
 	{
 		Modifiers |= Saturn::RubyKey_LeftAlt;
@@ -210,19 +215,19 @@ static int HandleKeyMods( uint16_t state )
 #define SAT_XCB_XBTN_0_MOUSE 7u
 #define SAT_XCB_XBTN_1_MOUSE 8u
 
-xcb_atom_t XcbGetAtom(xcb_connection_t *conn, const char *name)
+xcb_atom_t XcbGetAtom( xcb_connection_t* pConnection, const char* pName )
 {
 	xcb_intern_atom_cookie_t cookie =
-		xcb_intern_atom(conn, 0, strlen(name), name);
+		xcb_intern_atom( pConnection, 0, std::strlen( pName ), pName );
 
-	xcb_intern_atom_reply_t *reply =
-		xcb_intern_atom_reply(conn, cookie, NULL);
+	xcb_intern_atom_reply_t* pReply =
+		xcb_intern_atom_reply( pConnection, cookie, NULL );
 
-	if (!reply)
+	if( !pReply )
 		return XCB_NONE;
 
-	xcb_atom_t atom = reply->atom;
-	free(reply);
+	xcb_atom_t atom = pReply->atom;
+	std::free( pReply );
 	return atom;
 }
 
@@ -348,6 +353,36 @@ namespace Saturn {
 		{
 			switch( pEvent->response_type & ~0x80 ) 
 			{
+				case XCB_CONFIGURE_NOTIFY:
+				{
+					xcb_configure_notify_event_t* ev = (xcb_configure_notify_event_t*)pEvent;
+					
+					xcb_window_t XcbWindow = ev->event;
+					auto* pThis = RubyLibrary::Get().FindWindowFromXcbHnd( XcbWindow );
+					if( !pThis )
+						break;
+
+					if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked ) 
+					{
+						pThis->ConfigureClipRect();
+						pThis->RecenterMousePos();
+					}
+
+					pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( EventType::Resize, ev->width, ev->height );
+				} break;
+
+				case XCB_EXPOSE:
+				{
+					xcb_expose_event_t* ev = (xcb_expose_event_t*)pEvent;
+
+					xcb_window_t XcbWindow = ev->window;
+					auto* pThis = RubyLibrary::Get().FindWindowFromXcbHnd( XcbWindow );
+					if( !pThis )
+						break;
+
+					pThis->GetParent()->DispatchEvent<RubyWindowResizeEvent>( EventType::Resize, ev->width, ev->height );
+				} break;
+
 				case XCB_BUTTON_PRESS:
 				{
 					xcb_button_press_event_t* ev = (xcb_button_press_event_t *)pEvent;
@@ -474,7 +509,16 @@ namespace Saturn {
 
 					if( pThis->GetParent()->GetCursorMode() == RubyCursorMode::Locked )
 					{
-						// TODO: will do when ported.
+						RubyIVec2 lastPos = pThis->GetParent()->GetLastMousePos();
+
+						RubyIVec2 deltaPos = { x - lastPos.x, y - lastPos.y };
+						RubyIVec2 lockedDelta = pThis->GetParent()->GetVirtualMousePos();
+						lockedDelta += deltaPos;
+
+						pThis->GetParent()->DispatchEvent<RubyMouseMoveEvent>( 
+								EventType::MouseMoved, ( float ) lockedDelta.x, ( float ) lockedDelta.y );
+
+						pThis->GetParent()->IntrnlSetLockedMousePos( lockedDelta );
 					}
 					else
 					{
@@ -522,7 +566,7 @@ namespace Saturn {
 
 				case XCB_KEY_PRESS: 
 				{
-					xcb_key_press_event_t *ev = (xcb_key_press_event_t *)pEvent;
+					xcb_key_press_event_t* ev = ( xcb_key_press_event_t* ) pEvent;
 
 					xcb_window_t XcbWindow = ev->event;
 					auto* pThis = RubyLibrary::Get().FindWindowFromXcbHnd( XcbWindow );
@@ -530,10 +574,9 @@ namespace Saturn {
 					if( !pThis )
 						break;
 
-					xcb_keysym_t keysym = xcb_key_symbols_get_keysym( pThis->GetSymbols(), ev->detail, 0 );
+					const bool isShifted = ( ev->state & XCB_MOD_MASK_SHIFT );
+					xcb_keysym_t keysym = xcb_key_symbols_get_keysym( pThis->GetSymbols(), ev->detail, isShifted );
 					const RubyKey saturnKey = ConvertX11KeycodeToRuby( ev->detail );
-					
-					//SAT_CORE_INFO( "Saturn Key: {0}", (uint32_t)ev->detail );
 
 					if( keysym ) 
 					{
@@ -636,36 +679,46 @@ namespace Saturn {
 
 	void RubyXcbBackend::Maximize()
 	{
-		xcb_intern_atom_cookie_t wm_state_cookie = xcb_intern_atom(m_pConnection, 0, 13, "_NET_WM_STATE");
-		xcb_intern_atom_cookie_t max_vert_cookie = xcb_intern_atom(m_pConnection, 0, 25, "_NET_WM_STATE_MAXIMIZED_VERT");
-		xcb_intern_atom_cookie_t max_horz_cookie = xcb_intern_atom(m_pConnection, 0, 27, "_NET_WM_STATE_MAXIMIZED_HORZ");
+		xcb_intern_atom_cookie_t wm_state_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE"), "_NET_WM_STATE" );
+		xcb_intern_atom_cookie_t max_vert_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE_MAXIMIZED_VERT"), "_NET_WM_STATE_MAXIMIZED_VERT" );
+		xcb_intern_atom_cookie_t max_horz_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE_MAXIMIZED_HORZ"), "_NET_WM_STATE_MAXIMIZED_HORZ" );
 
-		xcb_intern_atom_reply_t *wm_state_reply = xcb_intern_atom_reply(m_pConnection, wm_state_cookie, NULL);
-		xcb_intern_atom_reply_t *max_vert_reply = xcb_intern_atom_reply(m_pConnection, max_vert_cookie, NULL);
-		xcb_intern_atom_reply_t *max_horz_reply = xcb_intern_atom_reply(m_pConnection, max_horz_cookie, NULL);
+		xcb_intern_atom_reply_t* wm_state_reply = xcb_intern_atom_reply( m_pConnection, wm_state_cookie, NULL );
+		xcb_intern_atom_reply_t* max_vert_reply = xcb_intern_atom_reply( m_pConnection, max_vert_cookie, NULL );
+		xcb_intern_atom_reply_t* max_horz_reply = xcb_intern_atom_reply( m_pConnection, max_horz_cookie, NULL );
 
 		xcb_client_message_event_t event;
 		event.response_type = XCB_CLIENT_MESSAGE;
 		event.format = 32;
 		event.window = m_Handle;
 		event.type = wm_state_reply->atom;
-		event.data.data32[0] = 1; // 1 = _NET_WM_STATE_ADD
-		event.data.data32[1] = max_vert_reply->atom;
-		event.data.data32[2] = max_horz_reply->atom;
-		event.data.data32[3] = 0;
-		event.data.data32[4] = 0;
+		event.data.data32[ 0 ] = 1; // _NET_WM_STATE_ADD
+		event.data.data32[ 1 ] = max_vert_reply->atom;
+		event.data.data32[ 2 ] = max_horz_reply->atom;
+		event.data.data32[ 3 ] = 1;
+		event.data.data32[ 4 ] = 0;
 
-		// Send to root window
-		xcb_get_setup(m_pConnection);
-		xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_pConnection)).data;
-		xcb_send_event(m_pConnection, 0, m_Handle, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY, (char *)&event);
-		
-		xcb_flush(m_pConnection);
+		xcb_screen_t* screen = nullptr;
+		xcb_screen_iterator_t iter = xcb_setup_roots_iterator( xcb_get_setup( m_pConnection ) );
+		screen = iter.data;
+
+		xcb_send_event( 
+			m_pConnection, 
+			0, 
+			screen->root, 
+			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY, 
+			reinterpret_cast<const char*>( &event ) );
+
+		xcb_flush( m_pConnection );
+
+		std::free( wm_state_reply );
+		std::free( max_vert_reply );
+		std::free( max_horz_reply );
 	}
 
 	void RubyXcbBackend::Minimize()
 	{
-		xcb_intern_atom_cookie_t cookie = xcb_intern_atom(m_pConnection, 0, std::strlen("WM_CHANGE_STATE"), "WM_CHANGE_STATE");
+		xcb_intern_atom_cookie_t cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("WM_CHANGE_STATE"), "WM_CHANGE_STATE" );
 		xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(m_pConnection, cookie, NULL);
 
 		xcb_atom_t atom = reply->atom;
@@ -681,7 +734,7 @@ namespace Saturn {
 		xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_pConnection)).data;
 		xcb_send_event(m_pConnection,
 			0,
-			m_Handle,
+			screen->root,
 			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
 			XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
 			(const char *)&ev);
@@ -698,12 +751,14 @@ namespace Saturn {
 		ev.window = m_Handle;
 		ev.type = active;
 		ev.format = 32;
-		ev.data.data32[0] = 1; // source indication (application)
+		ev.data.data32[0] = 1;
 		ev.data.data32[1] = XCB_CURRENT_TIME;
+
+		xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_pConnection)).data;
 
 		xcb_send_event(m_pConnection,
 			0,
-			m_Handle,
+			screen->root,
 			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
 			XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
 			(const char *)&ev);
@@ -880,7 +935,9 @@ namespace Saturn {
 	}
 
 	void RubyXcbBackend::SetMousePos( double x, double y )
-	{
+	{	
+		m_pWindow->IntrnlSetLastMousePos( { ( int ) x, ( int ) y } );
+
 		xcb_warp_pointer(m_pConnection,
 				 XCB_NONE,
 				 m_Handle,
