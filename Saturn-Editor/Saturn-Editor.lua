@@ -197,6 +197,8 @@ project "Saturn-Editor"
 			"Xrandr",
 			"xcb-randr",
 			"vulkan",
+			"xkbcommon",
+			"xkbcommon-x11"
 		}
 
 		libdirs

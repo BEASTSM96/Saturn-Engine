@@ -144,7 +144,9 @@ project "Saturn"
 			"xcb",
 			"Xrandr",
 			"vulkan",
-			"vulkan-1"
+			"vulkan-1",
+			"xkbcommon",
+			"xkbcommon-x11"
 		}
 
 		defines

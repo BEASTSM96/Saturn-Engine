@@ -38,7 +38,7 @@
 #include <vulkan_xcb.h>
 #endif
 
-//#include <libxkbcommon/xkbcommon-x11.h>
+#include <xkbcommon/xkbcommon-x11.h>
 #include <X11/keysym.h>
 
 #include <cstring>
@@ -574,19 +574,27 @@ namespace Saturn {
 					if( !pThis )
 						break;
 
-					const bool isShifted = ( ev->state & XCB_MOD_MASK_SHIFT );
-					xcb_keysym_t keysym = xcb_key_symbols_get_keysym( pThis->GetSymbols(), ev->detail, isShifted );
-					const RubyKey saturnKey = ConvertX11KeycodeToRuby( ev->detail );
+					xkb_keycode_t keycode = ev->detail;
+					enum xkb_key_direction direction = XKB_KEY_DOWN;
 
-					if( keysym ) 
+					xkb_state_update_key( RubyLibrary::Get().GetXkbState(), keycode, direction );
+
+					xkb_keysym_t keysym = xkb_state_key_get_one_sym( RubyLibrary::Get().GetXkbState(), keycode );
+
+					char buffer[64];
+					int len = xkb_keysym_to_utf8( keysym, buffer, sizeof( buffer ) );
+
+					if( len > 1 )
 					{
-						if( keysym >= XK_space && keysym <= XK_asciitilde ) 
+						uint32_t codepoint = xkb_keysym_to_utf32( keysym );
+						if( codepoint != 0 ) 
 						{
-							const wchar_t wc = (uint16_t)keysym;
+							const wchar_t wc = ( wchar_t )codepoint;
 							pThis->GetParent()->DispatchEvent<RubyCharacterEvent>( EventType::InputCharacter, wc );
-						}
+						}					
 					}
-					
+
+					const RubyKey saturnKey = ConvertX11KeycodeToRuby( keycode );
 					pThis->GetParent()->DispatchEvent<RubyKeyEvent>( EventType::KeyPressed, saturnKey, saturnKey, HandleKeyMods( ev->state ) );
 				} break;
 				
@@ -599,6 +607,11 @@ namespace Saturn {
 
 					if( !pThis )
 						break;
+
+					xkb_keycode_t keycode = ev->detail;
+					enum xkb_key_direction direction = XKB_KEY_UP;
+
+					xkb_state_update_key( RubyLibrary::Get().GetXkbState(), keycode, direction );
 
 					const RubyKey saturnKey = ConvertX11KeycodeToRuby( ev->detail );
 					pThis->GetParent()->DispatchEvent<RubyKeyEvent>( EventType::KeyReleased, saturnKey, saturnKey, HandleKeyMods( ev->state ) );
@@ -1022,7 +1035,7 @@ namespace Saturn {
 	void RubyXcbBackend::Focus()
 	{
 		const static uint32_t values[] = { XCB_STACK_MODE_ABOVE };
-		xcb_configure_window( m_pConnection, m_Handle, XCB_CONFIG_WINDOW_STACK_MODE, values);
+		xcb_configure_window( m_pConnection, m_Handle, XCB_CONFIG_WINDOW_STACK_MODE, values );
 	}
 
 	RubyIVec2 RubyXcbBackend::GetWindowPos()

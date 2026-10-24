@@ -129,6 +129,8 @@ project "Saturn-ProjectBrowser"
 			"Xrandr",
 			"xcb-randr",
 			"vulkan",
+			"xkbcommon",
+			"xkbcommon-x11",
 
 			"ImGui",
 			"SPIRV-Cross",
