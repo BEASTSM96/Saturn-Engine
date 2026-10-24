@@ -679,22 +679,18 @@ namespace Saturn {
 
 	void RubyXcbBackend::Maximize()
 	{
-		xcb_intern_atom_cookie_t wm_state_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE"), "_NET_WM_STATE" );
-		xcb_intern_atom_cookie_t max_vert_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE_MAXIMIZED_VERT"), "_NET_WM_STATE_MAXIMIZED_VERT" );
-		xcb_intern_atom_cookie_t max_horz_cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("_NET_WM_STATE_MAXIMIZED_HORZ"), "_NET_WM_STATE_MAXIMIZED_HORZ" );
-
-		xcb_intern_atom_reply_t* wm_state_reply = xcb_intern_atom_reply( m_pConnection, wm_state_cookie, NULL );
-		xcb_intern_atom_reply_t* max_vert_reply = xcb_intern_atom_reply( m_pConnection, max_vert_cookie, NULL );
-		xcb_intern_atom_reply_t* max_horz_reply = xcb_intern_atom_reply( m_pConnection, max_horz_cookie, NULL );
+		xcb_atom_t state = XcbGetAtom( m_pConnection, "_NET_WM_STATE" );
+		xcb_atom_t vert  = XcbGetAtom( m_pConnection, "_NET_WM_STATE_MAXIMIZED_VERT" );
+		xcb_atom_t horz  = XcbGetAtom( m_pConnection, "_NET_WM_STATE_MAXIMIZED_HORZ" );
 
 		xcb_client_message_event_t event;
 		event.response_type = XCB_CLIENT_MESSAGE;
 		event.format = 32;
 		event.window = m_Handle;
-		event.type = wm_state_reply->atom;
-		event.data.data32[ 0 ] = 1; // _NET_WM_STATE_ADD
-		event.data.data32[ 1 ] = max_vert_reply->atom;
-		event.data.data32[ 2 ] = max_horz_reply->atom;
+		event.type = state;
+		event.data.data32[ 0 ] = 1;
+		event.data.data32[ 1 ] = vert;
+		event.data.data32[ 2 ] = horz;
 		event.data.data32[ 3 ] = 1;
 		event.data.data32[ 4 ] = 0;
 
@@ -707,63 +703,60 @@ namespace Saturn {
 			0, 
 			screen->root, 
 			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY, 
-			reinterpret_cast<const char*>( &event ) );
+			reinterpret_cast<const char*>( &event ) 
+		);
 
 		xcb_flush( m_pConnection );
-
-		std::free( wm_state_reply );
-		std::free( max_vert_reply );
-		std::free( max_horz_reply );
 	}
 
 	void RubyXcbBackend::Minimize()
 	{
-		xcb_intern_atom_cookie_t cookie = xcb_intern_atom( m_pConnection, 0, std::strlen("WM_CHANGE_STATE"), "WM_CHANGE_STATE" );
-		xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(m_pConnection, cookie, NULL);
-
-		xcb_atom_t atom = reply->atom;
-		std::free(reply);
+		xcb_atom_t changeState = XcbGetAtom( m_pConnection, "WM_CHANGE_STATE" );
 
 		xcb_client_message_event_t ev = {0};
 		ev.response_type = XCB_CLIENT_MESSAGE;
 		ev.window = m_Handle;
-		ev.type = atom;
+		ev.type = changeState;
 		ev.format = 32;
 		ev.data.data32[0] = 3;
 
-		xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_pConnection)).data;
-		xcb_send_event(m_pConnection,
+		xcb_screen_t *screen = xcb_setup_roots_iterator( xcb_get_setup( m_pConnection ) ).data;
+		xcb_send_event( m_pConnection,
 			0,
 			screen->root,
 			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
 			XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
-			(const char *)&ev);
+			(const char *)&ev );
 
-		xcb_flush(m_pConnection);
+		xcb_flush( m_pConnection );
 	}
 
 	void RubyXcbBackend::Restore()
 	{
-		xcb_atom_t active = XcbGetAtom(m_pConnection, "_NET_ACTIVE_WINDOW");
+		xcb_atom_t state = XcbGetAtom( m_pConnection, "_NET_WM_STATE" );
+		xcb_atom_t vert  = XcbGetAtom( m_pConnection, "_NET_WM_STATE_MAXIMIZED_VERT" );
+		xcb_atom_t horz  = XcbGetAtom( m_pConnection, "_NET_WM_STATE_MAXIMIZED_HORZ" );
 
-		xcb_client_message_event_t ev = {0};
-		ev.response_type = XCB_CLIENT_MESSAGE;
-		ev.window = m_Handle;
-		ev.type = active;
-		ev.format = 32;
-		ev.data.data32[0] = 1;
-		ev.data.data32[1] = XCB_CURRENT_TIME;
+		xcb_client_message_event_t event;
+		event.response_type = XCB_CLIENT_MESSAGE;
+		event.format = 32;
+		event.window = m_Handle;
+		event.type = state;
+		event.data.data32[ 0 ] = 0;
+		event.data.data32[ 1 ] = vert;
+		event.data.data32[ 2 ] = horz;
+		event.data.data32[ 3 ] = 1;
+		event.data.data32[ 4 ] = 0;
 
-		xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(m_pConnection)).data;
-
-		xcb_send_event(m_pConnection,
+		xcb_screen_t* screen = xcb_setup_roots_iterator( xcb_get_setup( m_pConnection ) ).data;
+		xcb_send_event( m_pConnection,
 			0,
 			screen->root,
 			XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
 			XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
-			(const char *)&ev);
+			(const char *)&event );
 
-		xcb_flush(m_pConnection);
+		xcb_flush( m_pConnection );
 	}
 
 	WindowType RubyXcbBackend::GetNativeHandle()
